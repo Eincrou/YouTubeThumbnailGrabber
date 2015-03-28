@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace YoutubeThumbnailGrabber
 {
@@ -11,7 +8,7 @@ namespace YoutubeThumbnailGrabber
     {
         private static readonly string[] _idPatterns =
             { 
-                @"(?:\w*://.*)?youtube.com/watch\?v=([^\&\?\/]{11})/?", 
+                @"(?:\w*://.*)?youtube.com/watch\?(?:feature=player_embedded&)?v=([^\&\?\/]{11})/?", 
                 @"(?:\w*://.*)?youtube.com/embed/([^\&\?\/]{11})/?",
                 @"(?:\w*://.*)?youtube.com/v/([^\&\?\/]{11})/?",
                 @"(?:\w*://.*)?youtu.be/([^\&\?\/]{11})/?",
