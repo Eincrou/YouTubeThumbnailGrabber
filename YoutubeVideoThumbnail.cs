@@ -10,7 +10,6 @@ namespace YoutubeThumbnailGrabber
 {
     public class YouTubeVideoThumbnail
     {
-        //http://img.youtube.com/vi/[ID]/maxresdefault.jpg
         public YouTubeURL VideoURL { get; private set; }
         public string ImageMaxResString { get { return @"http://img.youtube.com/vi/" + VideoURL.VideoID + @"/maxresdefault.jpg"; } }
         public Uri ImageMaxResURI { get { return new Uri(ImageMaxResString, UriKind.Absolute); } }
