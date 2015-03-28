@@ -6,15 +6,9 @@ using System.Threading.Tasks;
 
 namespace YoutubeThumbnailGrabber
 {
-    public class Options
+    public struct Options
     {
         public string SaveImagePath { get; set; }
         public bool AutoSaveImages { get; set; }
-
-        public Options()
-        {
-            SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-        }         
-
     }
 }
