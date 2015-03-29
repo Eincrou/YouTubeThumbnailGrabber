@@ -19,6 +19,8 @@ namespace YoutubeThumbnailGrabber
         YouTubeVideoThumbnail Thumbnail;
         FolderBrowserDialog folderDialog = new FolderBrowserDialog();
 
+        string SaveImageFilename { get { return System.IO.Path.Combine(options.SaveImagePath, Thumbnail.VideoURL.VideoID) + ".jpg"; } }
+
         string configPath;
 
         public MainWindow()
@@ -134,8 +136,8 @@ namespace YoutubeThumbnailGrabber
         }
 
         private void SaveThumbnailImage()
-        {            
-            string fileName = System.IO.Path.Combine(options.SaveImagePath, Thumbnail.VideoURL.VideoID) + ".jpg";
+        {
+            string fileName = SaveImageFilename;
             if (File.Exists(fileName))
                 MessageBox.Show("Image file already exists in this direcotry.", "Image not saved", 
                     MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -195,9 +197,19 @@ namespace YoutubeThumbnailGrabber
         private void OpenImageInViewer(object sender, RoutedEventArgs e)
         {
             string temp = Environment.GetFolderPath(Environment.SpecialFolder.InternetCache) + @"\" + Thumbnail.VideoURL.VideoID + ".jpg";
-            if (File.Exists(temp))
+            string[] checkLocations = { SaveImageFilename, temp };
+            bool fileExists = false;
+            string existingFile = String.Empty;
+            foreach (var check in checkLocations)
+                if (File.Exists(check))
+                {
+                    fileExists = true;
+                    existingFile = check;
+                    break;
+                }
+            if (fileExists)
             {
-                System.Diagnostics.Process.Start(temp);
+                System.Diagnostics.Process.Start(existingFile);
             }
             else
             {

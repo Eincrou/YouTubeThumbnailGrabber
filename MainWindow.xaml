@@ -35,8 +35,7 @@
                 </Image.ContextMenu>
             </Image>
         </Border>
-
-        <TextBlock Text="Options" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Height="21" Margin="38,9,32,9" Width="56"/>
+        
         <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0">
             <Button x:Name="SetSaveFolder" Content="Set Save Folder" Height="40" Margin="0,15,0,0" Click="SetSaveFolder_Click"/>
             <CheckBox x:Name="AutoSaveCheckBox" Content="Autosave" Margin="15,10,0,0" Checked="AutoSaveCheckBox_Checked" Unchecked="AutoSaveCheckBox_Checked"/>
@@ -44,6 +43,6 @@
                 <TextBlock TextWrapping="Wrap" FontSize="14" FontWeight="Bold"  TextAlignment="Center" Text="Open Video In Browser"/>
             </Button>
         </StackPanel>
-
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="YTTG v1.1" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Margin="0,20" FontStyle="Italic"/>
     </Grid>
 </Window>
