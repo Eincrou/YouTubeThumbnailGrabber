@@ -1,20 +1,12 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
-using DialogBoxResult = System.Windows.Forms.DialogResult;
 using System.Xml.Serialization;
+using DialogBoxResult = System.Windows.Forms.DialogResult;
+using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
 namespace YoutubeThumbnailGrabber
 {
@@ -27,7 +19,6 @@ namespace YoutubeThumbnailGrabber
         YouTubeVideoThumbnail Thumbnail;
         FolderBrowserDialog folderDialog = new FolderBrowserDialog();
 
-        private bool ctrlKeyDown = false;
         string configPath;
 
         public MainWindow()
@@ -89,10 +80,9 @@ namespace YoutubeThumbnailGrabber
                 Thumbnail.GetThumbnailSuccess += Image_DownloadCompleted;
                 Thumbnail.GetThumbailFailure += Image_DownloadFailed;
                 Thumbnail.ThumbnailImage.DownloadProgress += ImageMaxRes_DownloadProgress;
+
                 if (Thumbnail.ThumbnailImage.IsDownloading)
-                {
                     DownloadProgress.Visibility = Visibility.Visible;
-                }
             }
             else
                 MessageBox.Show("Incorrect YouTube URL", "Invalid URL", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -126,25 +116,10 @@ namespace YoutubeThumbnailGrabber
             SaveThumbnailImage();
         }
 
-        private void Window_KeyDown(object sender, KeyEventArgs e)
+        private void ImageToClipboard()
         {
-            if (e.Key == Key.LeftCtrl || e.Key ==  Key.RightCtrl)
-                ctrlKeyDown = true;            
-        }
-
-        private void Window_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl)
-                ctrlKeyDown = false;
-        }
-
-        private void ThumbnailImage_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (ctrlKeyDown)
-            {
-                Clipboard.SetImage(Thumbnail.ThumbnailImage);
-                MessageBox.Show("Image copied to clipboard", "Copy thumbnail");
-            }
+            Clipboard.SetImage(Thumbnail.ThumbnailImage);
+            MessageBox.Show("Image copied to clipboard", "Image Copied", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         private void SetSaveFolder_Click(object sender, RoutedEventArgs e)
         {
@@ -210,12 +185,42 @@ namespace YoutubeThumbnailGrabber
                 MessageBox.Show("Your configuration could not be saved.",
                     "Configuration Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
         }
 
         private void OpenVideo_Click(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Process.Start(Thumbnail.VideoURL.LongYTURL);
+        }
+
+        private void OpenImageInViewer(object sender, RoutedEventArgs e)
+        {
+            string temp = Environment.GetFolderPath(Environment.SpecialFolder.InternetCache) + @"\" + Thumbnail.VideoURL.VideoID + ".jpg";
+            if (File.Exists(temp))
+            {
+                System.Diagnostics.Process.Start(temp);
+            }
+            else
+            {
+                JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(ThumbnailImage.Source as BitmapImage));
+                try
+                {
+                    using (Stream output = File.Create(temp))
+                        encoder.Save(output);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("The image could not be saved.",    
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                System.Diagnostics.Process.Start(temp);
+            }
+        }
+
+        private void ImageToClipboardHandler(object sender, RoutedEventArgs e)
+        {
+            ImageToClipboard();
         }
     }
 }

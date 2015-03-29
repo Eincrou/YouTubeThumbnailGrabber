@@ -1,7 +1,7 @@
 ﻿<Window x:Class="YoutubeThumbnailGrabber.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Youtube Thumbnail Grabber" Height="575" Width="1000" ResizeMode="CanMinimize" KeyDown="Window_KeyDown" KeyUp="Window_KeyUp">
+        Title="Youtube Thumbnail Grabber" Height="575" Width="1000" ResizeMode="CanMinimize">
     <Window.Background>
         <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlLightColorKey}}"/>
     </Window.Background>
@@ -26,7 +26,14 @@
             <Border.BorderBrush>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
             </Border.BorderBrush>
-            <Image x:Name="ThumbnailImage" MaxWidth="853" MaxHeight="480" MouseDown="ThumbnailImage_MouseDown" />
+            <Image x:Name="ThumbnailImage" MaxWidth="853" MaxHeight="480">
+                <Image.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Copy to clipboard" Click="ImageToClipboardHandler"/>
+                        <MenuItem Header="Open in default viewer" Click="OpenImageInViewer"/>
+                    </ContextMenu>
+                </Image.ContextMenu>
+            </Image>
         </Border>
 
         <TextBlock Text="Options" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Height="21" Margin="38,9,32,9" Width="56"/>
