@@ -3,6 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace YoutubeThumbnailGrabber
 {
+    /// <summary>
+    /// Parses and stores YouTube URLs and VideoIDs.
+    /// </summary>
     public class YouTubeURL
     {
         private static readonly string[] _idPatterns =
@@ -15,16 +18,32 @@ namespace YoutubeThumbnailGrabber
             };
         private string _inputURL;
         private string _videoID;
+        /// <summary>
+        /// This instance's unique video indentifier.
+        /// </summary>
         public string VideoID { get { return _videoID; } }
+        /// <summary>
+        /// A full-length URL for this instance's VideoID.
+        /// </summary>
         public string LongYTURL { get { return @"https://www.youtube.com/watch?v=" + VideoID; } }
+        /// <summary>
+        /// An abbreviated URL for this instance's VideoID.
+        /// </summary>
         public string ShortYTURL { get { return @"http://youtu.be/" + VideoID; } }
-
+        /// <summary>
+        /// Initializes an instance of the YouTubeURL class.
+        /// </summary>
+        /// <param name="inputURL">A valid URL for a YouTube video.</param>
         public YouTubeURL(string inputURL)
         {
             _inputURL = inputURL;
             _videoID = GetVideoID(inputURL);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url">A validated URL for a YouTube video.</param>
+        /// <returns>Eleven-character unique identifier for the video.</returns>
         public static string GetVideoID(string url)
         {
             foreach (var pattern in _idPatterns)
@@ -35,7 +54,11 @@ namespace YoutubeThumbnailGrabber
             }
             throw new ArgumentException("Invalid YouTube video URL", "url");
         }
-
+        /// <summary>
+        /// Checks if the input string can be successfully parsed into a YouTube VideoID.
+        /// </summary>
+        /// <param name="URLToCheck">A URL to check.</param>
+        /// <returns>Whether the URL matches a supported YouTube URL pattern.</returns>
         public static bool ValidateYTURL(string URLToCheck)
         {
             foreach (var pattern in _idPatterns)

@@ -97,6 +97,7 @@ namespace YoutubeThumbnailGrabber
             DownloadProgress.Visibility = Visibility.Collapsed;
             ImageResolution.Text = Thumbnail.ThumbnailImage.PixelWidth + " x " + Thumbnail.ThumbnailImage.PixelHeight;
             OpenVideo.IsEnabled = true;
+            Thumbnail.GetThumbnailSuccess -= Image_DownloadCompleted;
 
             if (options.AutoSaveImages)
                 SaveThumbnailImage();
@@ -107,6 +108,7 @@ namespace YoutubeThumbnailGrabber
             SaveImage.IsEnabled = false;
             DownloadProgress.Visibility = Visibility.Collapsed;
             OpenVideo.IsEnabled = false;
+            Thumbnail.GetThumbailFailure -= Image_DownloadFailed;
         }
         void ImageMaxRes_DownloadProgress(object sender, DownloadProgressEventArgs e)
         {
