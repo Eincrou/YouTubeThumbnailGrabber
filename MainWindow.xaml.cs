@@ -18,6 +18,7 @@ namespace YoutubeThumbnailGrabber
         Options options;
         YouTubeVideoThumbnail Thumbnail;
         FolderBrowserDialog folderDialog = new FolderBrowserDialog();
+        BitmapImage defaultThumbnail;
 
         string SaveImageFilename { get { return System.IO.Path.Combine(options.SaveImagePath, Thumbnail.VideoURL.VideoID) + ".jpg"; } }
 
@@ -27,6 +28,8 @@ namespace YoutubeThumbnailGrabber
         {
             InitializeComponent();
 
+            defaultThumbnail = new BitmapImage(new Uri(@"\Resources\YouTubeThumbnailUnavailable.jpg", UriKind.Relative));
+            ThumbnailImage.Source = defaultThumbnail;
             configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xml");
             LoadSettings();          
         }
@@ -103,12 +106,13 @@ namespace YoutubeThumbnailGrabber
                 SaveThumbnailImage();
         }
         void Image_DownloadFailed(object sender, ExceptionEventArgs e)
-        {
-            MessageBox.Show("The video thumbnail has failed to download.", "Download failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        {           
             SaveImage.IsEnabled = false;
             DownloadProgress.Visibility = Visibility.Collapsed;
+            ThumbnailImage.Source = defaultThumbnail;
             OpenVideo.IsEnabled = false;
             Thumbnail.GetThumbailFailure -= Image_DownloadFailed;
+            MessageBox.Show("The video thumbnail has failed to download.", "Download failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         void ImageMaxRes_DownloadProgress(object sender, DownloadProgressEventArgs e)
         {

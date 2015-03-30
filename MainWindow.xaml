@@ -3,26 +3,45 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Youtube Thumbnail Grabber" Height="575" Width="1000" ResizeMode="CanMinimize">
     <Window.Background>
-        <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlLightColorKey}}"/>
+        <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.MenuColorKey}}"/>
     </Window.Background>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="62*"/>
-            <ColumnDefinition Width="9*"/>
+            <ColumnDefinition Width="885*"/>
+            <ColumnDefinition Width="109*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="39*"/>
             <RowDefinition Height="508*"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2">
-            <TextBlock x:Name="ImageResolution" HorizontalAlignment="Left" Width="120" Margin="0,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="14" TextAlignment="Center" FontWeight="Bold"/>
+
+        <Grid.Resources>
+            <Style TargetType="Button" x:Key="BtnStyle">
+                <Setter Property="Foreground" Value="#FFFF6B6B"/>
+                <Setter Property="BorderBrush" Value="Red"/>
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="White" Offset="0"/>
+                            <GradientStop Color="#FFFFF3F3" Offset="0.5"/>
+                            <GradientStop Color="#FFFFEAEA" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Grid.Resources>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="2">
+            <TextBlock x:Name="ImageResolution" HorizontalAlignment="Left" VerticalAlignment="Center" Width="120" Margin="0,10,0,0" TextWrapping="Wrap" Text="" FontSize="14" TextAlignment="Center" FontWeight="Bold"/>
             <TextBox x:Name="InputVideoURL" HorizontalAlignment="Left" Width="520" Height="23" Margin="5,10,5,0" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" />
-            <Button x:Name="GetImage" Content="_Get Thumbnail" HorizontalAlignment="Left" Margin="5,10,5,0" VerticalAlignment="Top" Width="90" Click="GetImage_Click"/>
-            <Button x:Name="SaveImage" Content="_Save Thumbnail" HorizontalAlignment="Left" Margin="5,10,5,0" VerticalAlignment="Top" Width="100" IsEnabled="False" Click="SaveImage_Click"/>
+            <Button x:Name="GetImage" Content="_Get Thumbnail" Margin="5,10,5,0" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                    Width="90" Click="GetImage_Click" />
+            <Button x:Name="SaveImage" Content="_Save Thumbnail" Margin="5,10,5,0" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                    Width="100" IsEnabled="False" Click="SaveImage_Click"/>
         </StackPanel>
 
-        <ProgressBar x:Name="DownloadProgress" HorizontalAlignment="Center" Height="40" VerticalAlignment="Center" Width="700" Visibility="Collapsed" Grid.Row="1" Panel.ZIndex="5" Margin="86,234,82,234"/>
-        <Border Grid.Row="1" Grid.Column="0"  BorderThickness="3" Height="480" Width="854" HorizontalAlignment="Center" VerticalAlignment="Center" Background="White" Margin="5,0,0,0">
+        <ProgressBar x:Name="DownloadProgress" HorizontalAlignment="Center" Height="40" VerticalAlignment="Center" Width="700" Visibility="Collapsed" Grid.Row="1" Panel.ZIndex="5" Margin="92,234,93,234" />
+        <Border Grid.Row="1" Grid.Column="0"  BorderThickness="3" Height="480" Width="850" HorizontalAlignment="Center" VerticalAlignment="Center" Background="White" >
             <Border.BorderBrush>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}"/>
             </Border.BorderBrush>
@@ -35,14 +54,14 @@
                 </Image.ContextMenu>
             </Image>
         </Border>
-        
-        <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0">
-            <Button x:Name="SetSaveFolder" Content="Set Save Folder" Height="40" Margin="0,15,0,0" Click="SetSaveFolder_Click"/>
+
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,10,0">
+            <Button x:Name="SetSaveFolder" Content="Set Save Folder" Height="40" Margin="0,15,0,0" Click="SetSaveFolder_Click" />
             <CheckBox x:Name="AutoSaveCheckBox" Content="Autosave" Margin="15,10,0,0" Checked="AutoSaveCheckBox_Checked" Unchecked="AutoSaveCheckBox_Checked"/>
             <Button x:Name="OpenVideo" Height="50" Margin="0,140,0,0" IsEnabled="False" Click="OpenVideo_Click">
                 <TextBlock TextWrapping="Wrap" FontSize="14" FontWeight="Bold"  TextAlignment="Center" Text="Open Video In Browser"/>
             </Button>
         </StackPanel>
-        <TextBlock Grid.Row="1" Grid.Column="1" Text="YTTG v1.2" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Margin="0,20" FontStyle="Italic"/>
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="YTTG v1.2" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Margin="0,0,0,20" FontStyle="Italic"  />
     </Grid>
 </Window>
