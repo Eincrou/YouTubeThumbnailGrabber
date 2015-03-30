@@ -14,7 +14,8 @@ namespace YoutubeThumbnailGrabber
                 @"(?:\w*://.*)?youtube.com/embed/([^\&\?\/]{11})/?",
                 @"(?:\w*://.*)?youtube.com/v/([^\&\?\/]{11})/?",
                 @"(?:\w*://.*)?youtu.be/([^\&\?\/]{11})/?",
-                @"(?:\w*://.*)?youtube.com/verify_age\?next_url=watch%3Fv%3D([^\&\?\/]{11})/?"
+                @"(?:\w*://.*)?youtube.com/verify_age\?next_url=watch%3Fv%3D([^\&\?\/]{11})/?",
+                @"(?:\w*://.*)?interleave-vr.com/youtube-proper-player.php\?v=([^\&\?\/]{11})/?"
             };
         private string _inputURL;
         private string _videoID;
@@ -30,6 +31,10 @@ namespace YoutubeThumbnailGrabber
         /// An abbreviated URL for this instance's VideoID.
         /// </summary>
         public string ShortYTURL { get { return @"http://youtu.be/" + VideoID; } }
+        /// <summary>
+        /// A URL to force the video to play with the Flash Video Player.
+        /// </summary>
+        public string EnforcerURL { get { return @"http://www.interleave-vr.com/youtube-proper-player.php?v=" + VideoID; } }
         /// <summary>
         /// Initializes an instance of the YouTubeURL class.
         /// </summary>

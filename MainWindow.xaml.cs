@@ -198,7 +198,7 @@ namespace YoutubeThumbnailGrabber
 
         private void OpenImageInViewer(object sender, RoutedEventArgs e)
         {
-            string temp = Environment.GetFolderPath(Environment.SpecialFolder.InternetCache) + @"\" + Thumbnail.VideoURL.VideoID + ".jpg";
+            string temp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Temp\" + Thumbnail.VideoURL.VideoID + ".jpg";
             string[] checkLocations = { SaveImageFilename, temp };
             bool fileExists = false;
             string existingFile = String.Empty;
