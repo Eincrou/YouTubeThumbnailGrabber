@@ -52,7 +52,7 @@
                         <MenuItem Header="Open in default viewer" Click="OpenImageInViewer"/>
                     </ContextMenu>
                 </Image.ContextMenu>
-            </Image>
+            </Image>            
         </Border>
 
         <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,10,0">

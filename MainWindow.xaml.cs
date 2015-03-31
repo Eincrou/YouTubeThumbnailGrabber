@@ -19,6 +19,7 @@ namespace YoutubeThumbnailGrabber
         YouTubeVideoThumbnail Thumbnail;
         FolderBrowserDialog folderDialog = new FolderBrowserDialog();
         BitmapImage defaultThumbnail;
+        ContextMenu ThumbnailImageCM;
 
         string SaveImageFilename { get { return System.IO.Path.Combine(options.SaveImagePath, Thumbnail.VideoURL.VideoID) + ".jpg"; } }
 
@@ -29,7 +30,9 @@ namespace YoutubeThumbnailGrabber
             InitializeComponent();
 
             defaultThumbnail = new BitmapImage(new Uri(@"\Resources\YouTubeThumbnailUnavailable.jpg", UriKind.Relative));
+            ThumbnailImageCM = ThumbnailImage.ContextMenu;
             ThumbnailImage.Source = defaultThumbnail;
+            ThumbnailImage.ContextMenu = null;
             configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xml");
             LoadSettings();          
         }
@@ -55,6 +58,7 @@ namespace YoutubeThumbnailGrabber
             else
                 LoadDefaultSettings();
 
+            folderDialog.Description = "Select a folder to save thumbnail images.";
             folderDialog.SelectedPath = options.SaveImagePath;
             AutoSaveCheckBox.IsChecked = options.AutoSaveImages;
         }
@@ -81,6 +85,8 @@ namespace YoutubeThumbnailGrabber
                     return;
                 }
                 ThumbnailImage.Source = new BitmapImage();
+                if (ThumbnailImage.ContextMenu == null)
+                    ThumbnailImage.ContextMenu = ThumbnailImageCM;
                 Thumbnail = new YouTubeVideoThumbnail(url);
                 Thumbnail.GetThumbnailSuccess += Image_DownloadCompleted;
                 Thumbnail.GetThumbailFailure += Image_DownloadFailed;
@@ -109,8 +115,9 @@ namespace YoutubeThumbnailGrabber
         {           
             SaveImage.IsEnabled = false;
             DownloadProgress.Visibility = Visibility.Collapsed;
-            ThumbnailImage.Source = defaultThumbnail;
             OpenVideo.IsEnabled = false;
+            ThumbnailImage.Source = defaultThumbnail;
+            ThumbnailImage.ContextMenu = null;
             Thumbnail.GetThumbailFailure -= Image_DownloadFailed;
             MessageBox.Show("The video thumbnail has failed to download.", "Download failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -152,7 +159,7 @@ namespace YoutubeThumbnailGrabber
                 if (!Directory.Exists(options.SaveImagePath))
                     Directory.CreateDirectory(options.SaveImagePath);
                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(ThumbnailImage.Source as BitmapImage));
+                encoder.Frames.Add(BitmapFrame.Create(Thumbnail.ThumbnailImage as BitmapImage));
                 try
                 {
                     using (Stream output = File.Create(fileName))
@@ -220,7 +227,7 @@ namespace YoutubeThumbnailGrabber
             else
             {
                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(ThumbnailImage.Source as BitmapImage));
+                encoder.Frames.Add(BitmapFrame.Create(Thumbnail.ThumbnailImage as BitmapImage));
                 try
                 {
                     using (Stream output = File.Create(temp))
