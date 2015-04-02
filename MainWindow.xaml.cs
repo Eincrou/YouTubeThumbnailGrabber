@@ -96,7 +96,7 @@ namespace YoutubeThumbnailGrabber
                     DownloadProgress.Visibility = Visibility.Visible;
             }
             else
-                MessageBox.Show("Incorrect YouTube URL", "Invalid URL", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Invalid YouTube video URL", "Invalid URL", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         void Image_DownloadCompleted(object sender, EventArgs e)

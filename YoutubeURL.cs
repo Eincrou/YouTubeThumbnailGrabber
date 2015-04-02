@@ -6,7 +6,7 @@ namespace YoutubeThumbnailGrabber
     /// <summary>
     /// Parses and stores YouTube URLs and VideoIDs.
     /// </summary>
-    public class YouTubeURL
+    public class YouTubeURL : IFormattable
     {
         private static readonly string[] _idPatterns =
             { 
@@ -15,6 +15,7 @@ namespace YoutubeThumbnailGrabber
                 @"(?:\w*://.*)?youtube.com/v/([^\&\?\/]{11})",
                 @"(?:\w*://.*)?youtu.be/([^\&\?\/]{11})",
                 @"(?:\w*://.*)?youtube.com/verify_age\?next_url=watch%3Fv%3D([^\&\?\/]{11})",
+                @"(?:\w*://.*)?youtube.com/watch\?annotation_id=annotation_\d*\&feature=iv&src_vid=[^\&\?\/]{11}\&v=([^\&\?\/]{11})",
                 @"(?:\w*://.*)?interleave-vr.com/youtube-proper-player.php\?v=([^\&\?\/]{11})"
             };
         private string _inputURL;
@@ -26,15 +27,15 @@ namespace YoutubeThumbnailGrabber
         /// <summary>
         /// A full-length URL for this instance's VideoID.
         /// </summary>
-        public string LongYTURL { get { return @"https://www.youtube.com/watch?v=" + VideoID; } }
+        public string LongYTURL { get { return @"https://www.youtube.com/watch?v=" + _videoID; } }
         /// <summary>
         /// An abbreviated URL for this instance's VideoID.
         /// </summary>
-        public string ShortYTURL { get { return @"http://youtu.be/" + VideoID; } }
+        public string ShortYTURL { get { return @"http://youtu.be/" + _videoID; } }
         /// <summary>
         /// A URL to force the video to play with the Flash Video Player.
         /// </summary>
-        public string EnforcerURL { get { return @"http://www.interleave-vr.com/youtube-proper-player.php?v=" + VideoID; } }
+        public string EnforcerURL { get { return @"http://www.interleave-vr.com/youtube-proper-player.php?v=" + _videoID; } }
         /// <summary>
         /// Initializes an instance of the YouTubeURL class.
         /// </summary>
@@ -45,7 +46,7 @@ namespace YoutubeThumbnailGrabber
             _videoID = GetVideoID(inputURL);
         }
         /// <summary>
-        /// 
+        /// Gets the unique identifier of a YouTube video from a valid YouTube video URL.
         /// </summary>
         /// <param name="url">A validated URL for a YouTube video.</param>
         /// <returns>Eleven-character unique identifier for the video.</returns>
@@ -70,6 +71,29 @@ namespace YoutubeThumbnailGrabber
                 if (Regex.IsMatch(URLToCheck, pattern))
                     return true;
             return false;
+        }
+        public override string ToString()
+        {
+            return ShortYTURL;
+        }
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            if (format == null) format = "S";
+            switch (format.ToUpper())
+            {
+                case null:
+                case "ID":
+                    return VideoID;
+                case "S":
+                    return ShortYTURL;
+                case "L":
+                    return LongYTURL;
+                case "E":
+                    return EnforcerURL;
+                default:
+                    throw new FormatException(String.Format(formatProvider,
+                          "Format {0} is not supported", format));
+            }
         }
     }
 }

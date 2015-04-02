@@ -10,20 +10,31 @@ namespace YoutubeThumbnailGrabber
     public class YouTubeVideoThumbnail
     {
         public YouTubeURL VideoURL { get; private set; }
-        public string ImageMaxResString { get { return @"http://img.youtube.com/vi/" + VideoURL.VideoID + @"/maxresdefault.jpg"; } }
-        public Uri ImageMaxResURI { get { return new Uri(ImageMaxResString, UriKind.Absolute); } }
-        public string ImageAlternateString { get { return @"http://i.ytimg.com/vi/" + VideoURL.VideoID + @"/0.jpg"; } }
-        public Uri ImageAlternateURI { get { return new Uri(ImageAlternateString, UriKind.Absolute); } }
+        public string ImageMaxResString { get; private set; }
+        public Uri ImageMaxResURI { get; private set; }
+        public string ImageAlternateString { get; private set; }
+        public Uri ImageAlternateURI { get; private set; }
         private BitmapImage _thumbnailImage;
         public BitmapImage ThumbnailImage { get { return _thumbnailImage; } }
         /// <summary>
         /// Initializes a new instance of the YouTubeVideoThumbnail class. Provides members related to storing a YouTubeURL, URLs to video thumbnail images, and events related to downloading them.
         /// </summary>
-        /// <param name="youtubeurl">A validated YouTube URL. (Use YouTubeURL.ValidateYTURL)</param>
-        public YouTubeVideoThumbnail(string youtubeurl)
+        /// <param name="youtubeuUrl">A validated YouTube URL. (Use YouTubeURL.ValidateYTURL)</param>
+        public YouTubeVideoThumbnail(string youtubeuUrl)
         {
-            VideoURL = new YouTubeURL(youtubeurl);
+            VideoURL = new YouTubeURL(youtubeuUrl);
+            CreateURLs();
             GetThumbnail();
+        }
+        /// <summary>
+        /// Generates the URLs and URIs needed to access thumbnail images.
+        /// </summary>
+        private void CreateURLs()
+        {
+            ImageMaxResString = String.Format("http://i.ytimg.com/vi/{0:ID}/maxresdefault.jpg", VideoURL);
+            ImageMaxResURI = new Uri(ImageMaxResString, UriKind.Absolute);
+            ImageAlternateString = String.Format("http://i.ytimg.com/vi/{0:ID}/0.jpg", VideoURL);
+            ImageAlternateURI = new Uri(ImageAlternateString, UriKind.Absolute);
         }
         /// <summary>
         /// Initiates attempts to download the thumbnail image for this VideoURL. If the first attempt fails, a second attempt is made with an alternate URL.
@@ -53,9 +64,7 @@ namespace YoutubeThumbnailGrabber
         {
             EventHandler getThumbnailSuccess = GetThumbnailSuccess;
             if (getThumbnailSuccess != null)
-            {
                 GetThumbnailSuccess(sender, e);
-            }
         }
         /// <summary>
         /// Occurs when the YouTube thumbnail image has failed to download.
@@ -65,10 +74,7 @@ namespace YoutubeThumbnailGrabber
         {
             EventHandler<ExceptionEventArgs> getThumbailFailure = GetThumbailFailure;
             if (getThumbailFailure != null)
-            {
                 GetThumbailFailure(sender, exception);
-            }
         }
-
     }
 }

@@ -178,6 +178,7 @@ Generated_Code/
 # to a newer Visual Studio version. Backup files are not needed,
 # because we have git ;-)
 _UpgradeReport_Files/
+*.backup
 Backup*/
 UpgradeLog*.XML
 UpgradeLog*.htm
