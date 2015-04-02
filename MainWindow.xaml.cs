@@ -173,7 +173,7 @@ namespace YouTubeThumbnailGrabber
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show("The image could not be saved.", 
+                    MessageBox.Show("Image could not be saved.", 
                         "Configuration Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }

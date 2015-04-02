@@ -10,12 +10,10 @@ namespace YouTubeThumbnailGrabber
     {
         private static readonly string[] _idPatterns =
             { 
-                @"(?:\w*://.*)?youtube.com/watch\?(?:feature=player_embedded&)?v=([^\&\?\/]{11})", 
-                @"(?:\w*://.*)?youtube.com/embed/([^\&\?\/]{11})",
-                @"(?:\w*://.*)?youtube.com/v/([^\&\?\/]{11})",
+                @"(?:\w*://.*)?youtube.com/watch\?(?:[^/]+\&)?(?:v|src_vid)=([^\&\?\/]{11})", 
+                @"(?:\w*://.*)?youtube.com/\w*/([^\&\?\/]{11})",
                 @"(?:\w*://.*)?youtu.be/([^\&\?\/]{11})",
                 @"(?:\w*://.*)?youtube.com/verify_age\?next_url=watch%3Fv%3D([^\&\?\/]{11})",
-                @"(?:\w*://.*)?youtube.com/watch\?annotation_id=annotation_\d*\&feature=iv&src_vid=[^\&\?\/]{11}\&v=([^\&\?\/]{11})",
                 @"(?:\w*://.*)?interleave-vr.com/youtube-proper-player.php\?v=([^\&\?\/]{11})"
             };
         private string _inputURL;
