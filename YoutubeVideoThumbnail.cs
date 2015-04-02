@@ -2,7 +2,7 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace YoutubeThumbnailGrabber
+namespace YouTubeThumbnailGrabber
 {
     /// <summary>
     /// Properties and events related to grabbing and storing YouTube thumbnail images.

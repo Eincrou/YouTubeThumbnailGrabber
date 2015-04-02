@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 using DialogBoxResult = System.Windows.Forms.DialogResult;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
-namespace YoutubeThumbnailGrabber
+namespace YouTubeThumbnailGrabber
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

@@ -1,4 +1,4 @@
-﻿<Window x:Class="YoutubeThumbnailGrabber.MainWindow"
+﻿<Window x:Class="YouTubeThumbnailGrabber.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Youtube Thumbnail Grabber" Height="575" Width="1000" ResizeMode="CanMinimize">
