@@ -82,7 +82,7 @@ namespace YouTubeThumbnailGrabber
         public string ToString(string format, IFormatProvider formatProvider)
         {
             if (format == null) format = "S";
-            switch (format.ToUpper())
+            switch (format.ToUpperInvariant())
             {
                 case null:
                 case "ID":
