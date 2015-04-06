@@ -274,34 +274,18 @@ namespace YouTubeThumbnailGrabber
 
         private void UpdateStatusBar()
         {
-            SBURL.Text = Thumbnail.VideoURL.ShortYTURL;
-            WebClient wc = new WebClient();
-            string page = wc.DownloadString(Thumbnail.VideoURL.LongYTURL);
-
-            Match titleMatch = Regex.Match(page, @"<h1\sclass=""yt\swatch-title-container""\s>[^<]*<.*title=\""(.*)\"">");
-            string title = titleMatch.Groups[1].Value;
-            if (title.Contains("&quot;"))
-                title = title.Replace("&quot;", "\"");
-            if (title.Contains("&#39;"))
-                title = title.Replace("&#39;", "'");
-            if (title.Contains("&amp;"))
-                title = title.Replace("&amp;", "&");
-            SBTitle.Text = title;
-
-            Match channelMatch = Regex.Match(page, @"<div\sclass=""yt-user-info"">[^<]*<.*href=""([^""]*)"".*>(.*)</a>");
-            channelURL = @"http://www.youtube.com/" + channelMatch.Groups[1].Value;
-            string channel = channelMatch.Groups[2].Value;
-            if (channel.Contains("&quot;"))
-                channel = channel.Replace("&quot;", "\"");
-            if (channel.Contains("&#39;"))
-                channel = channel.Replace("&#39;", "'");
-            if (channel.Contains("&amp;"))
-                channel = channel.Replace("&amp;", "&");
-            SBChannel.Text = channel;
+            YouTubePage ytp = new YouTubePage(Thumbnail.VideoURL);
+            SBURL.Text = ytp.YTURL.ShortYTURL;
+            SBTitle.Text = ytp.VideoTitle;
+            SBChannel.Text = ytp.ChannelName;
+            ytp.ChanImageDownloaded += ytp_ChanImageDownloaded;
+            channelURL = ytp.ChannelURL.OriginalString;
         }
 
-
-
+        void ytp_ChanImageDownloaded(object sender, EventArgs e)
+        {
+            SBChanImage.Source = ((YouTubePage)sender).ChannelIcon;
+        }
 
     }
 }

@@ -10,9 +10,7 @@ namespace YouTubeThumbnailGrabber
     public class YouTubeVideoThumbnail
     {
         public YouTubeURL VideoURL { get; private set; }
-        public string ImageMaxResString { get; private set; }
         public Uri ImageMaxResURI { get; private set; }
-        public string ImageAlternateString { get; private set; }
         public Uri ImageAlternateURI { get; private set; }
         private BitmapImage _thumbnailImage;
         public BitmapImage ThumbnailImage { get { return _thumbnailImage; } }
@@ -31,10 +29,8 @@ namespace YouTubeThumbnailGrabber
         /// </summary>
         private void CreateURLs()
         {
-            ImageMaxResString = String.Format("http://i.ytimg.com/vi/{0:ID}/maxresdefault.jpg", VideoURL);
-            ImageMaxResURI = new Uri(ImageMaxResString, UriKind.Absolute);
-            ImageAlternateString = String.Format("http://i.ytimg.com/vi/{0:ID}/0.jpg", VideoURL);
-            ImageAlternateURI = new Uri(ImageAlternateString, UriKind.Absolute);
+            ImageMaxResURI = new Uri(String.Format("http://i.ytimg.com/vi/{0:ID}/maxresdefault.jpg", VideoURL), UriKind.Absolute);
+            ImageAlternateURI = new Uri(String.Format("http://i.ytimg.com/vi/{0:ID}/0.jpg", VideoURL), UriKind.Absolute);
         }
         /// <summary>
         /// Initiates attempts to download the thumbnail image for this VideoURL. If the first attempt fails, a second attempt is made with an alternate URL.

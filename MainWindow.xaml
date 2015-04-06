@@ -64,17 +64,20 @@
             </Button>
         </StackPanel>
         <TextBlock Grid.Row="1" Grid.Column="1" Text="YTTG v1.3" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Margin="0,0,10,20" FontStyle="Italic" />
-        <StatusBar Grid.Row="2" Grid.ColumnSpan="2" BorderBrush="Gray" BorderThickness="1" Margin="1">
-            <StatusBarItem Width="170" Margin="10,0,0,0" MouseLeftButtonDown="StatusBarURL_MouseLeftButtonDown" MouseRightButtonDown="StatusBarURL_MouseRightButtonDown">
+        <StatusBar Grid.Row="2" Grid.ColumnSpan="2" BorderBrush="Gray" BorderThickness="1" Margin="0,1">
+            <StatusBarItem MinWidth="175" Margin="10,0,0,0" MouseLeftButtonDown="StatusBarURL_MouseLeftButtonDown" MouseRightButtonDown="StatusBarURL_MouseRightButtonDown">
                 <TextBlock x:Name="SBURL" HorizontalAlignment="Center" Foreground="#FF293CFF" TextDecorations="Underline" />
             </StatusBarItem>            
             <Separator/>
-            <StatusBarItem Margin="15,0,0,0" Width="580">
-                <TextBlock x:Name="SBTitle" FontSize="14" FontWeight="Black" TextAlignment="Center" />
+            <StatusBarItem Margin="5,0,0,0" MinWidth="580">
+                <TextBlock x:Name="SBTitle" FontSize="14" FontWeight="Black" TextAlignment="Center" TextTrimming="CharacterEllipsis"/>
             </StatusBarItem>
             <Separator/>
-            <StatusBarItem Margin="15,0,0,0" MouseLeftButtonDown="SBChannel_MouseLeftButtonDown">
-                <TextBlock x:Name="SBChannel" />
+            <StatusBarItem Margin="0,0,0,0" MouseLeftButtonDown="SBChannel_MouseLeftButtonDown">
+                <StackPanel Orientation="Horizontal">
+                    <Image x:Name="SBChanImage" Width="16" Height="16" Margin="0,0,4,0"/>
+                    <TextBlock x:Name="SBChannel" TextTrimming="CharacterEllipsis" MaxWidth="180" />
+                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>
