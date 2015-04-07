@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace YouTubeThumbnailGrabber
 {
+    public enum FileNamingMode
+    {
+        ChannelTitle = 0,
+        VideoID = 1
+    }
     /// <summary>
     /// User options to be serialized.
     /// </summary>
@@ -19,5 +24,8 @@ namespace YouTubeThumbnailGrabber
         /// Whether to save images to the save directory as soon as they're grabbed.
         /// </summary>
         public bool AutoSaveImages { get; set; }
+        public bool AutoLoadURLs { get; set; }
+        public bool PublishedDateTitle { get; set; }
+        public FileNamingMode ImageFileNamingMode { get; set; }
     }
 }

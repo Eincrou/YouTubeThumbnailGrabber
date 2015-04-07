@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -276,7 +274,7 @@ namespace YouTubeThumbnailGrabber
         {
             YouTubePage ytp = new YouTubePage(Thumbnail.VideoURL);
             SBURL.Text = ytp.YTURL.ShortYTURL;
-            SBTitle.Text = ytp.VideoTitle;
+            SBTitle.Text = String.Format("[{0:yy.MM.dd}] {1}", ytp.Published.Value, ytp.VideoTitle);
             SBChannel.Text = ytp.ChannelName;
             ytp.ChanImageDownloaded += ytp_ChanImageDownloaded;
             channelURL = ytp.ChannelURL.OriginalString;
@@ -287,5 +285,16 @@ namespace YouTubeThumbnailGrabber
             SBChanImage.Source = ((YouTubePage)sender).ChannelIcon;
         }
 
+        private void OpenOptions_Click(object sender, RoutedEventArgs e)
+        {
+            OptionsMenu om = new OptionsMenu();
+            om.ShowDialog();
+        }
+
+        private void SBTitle_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (SBTitle.Text != String.Empty)
+                Clipboard.SetText(SBTitle.Text);
+        }
     }
 }

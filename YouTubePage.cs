@@ -17,17 +17,29 @@ namespace YouTubeThumbnailGrabber
         public Uri ChannelURL { get; private set; }
         public BitmapImage ChannelIcon { get; private set; }
 
+        private DateTime? _published;
+        public DateTime? Published
+        {
+            get
+            {
+                if (!_published.HasValue)
+                    GetPublished();
+                return _published;
+            }
+        }
+
         private string _page { get; set; }
 
         public YouTubePage(YouTubeURL yturl)
         {
             YTURL = yturl;
             WebClient wc = new WebClient();
-            string page = wc.DownloadString(YTURL.LongYTURL);
+            _page = wc.DownloadString(YTURL.LongYTURL);
 
-            GetVideoTitle(page);
-            GetChannelInfo(page);
-            GetChannelIcon(page);
+            GetChannelIcon(_page);
+            GetVideoTitle(_page);
+            GetChannelInfo(_page);
+            
         }
 
         private void GetVideoTitle(string page)
@@ -54,6 +66,15 @@ namespace YouTubeThumbnailGrabber
             ChannelIcon = (BitmapImage)sender;
             OnChanImageDownloaded(e);
         }
+
+        private void GetPublished()
+        {
+            Match pubMatch = Regex.Match(_page, @"Published\son\s([^<]*)");
+            _published = DateTime.Parse(pubMatch.Groups[1].Value);
+        }
+        /// <summary>
+        /// Notifies when the channel icon image has completed downloading.
+        /// </summary>
         public event EventHandler ChanImageDownloaded;
         private void OnChanImageDownloaded(EventArgs e)
         {
