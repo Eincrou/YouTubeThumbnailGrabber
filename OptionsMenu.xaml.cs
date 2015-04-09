@@ -81,7 +81,10 @@ namespace YouTubeThumbnailGrabber
         private void LoadDefaultSettings()
         {
             options = new Options();
+            options.ImageFileNamingMode = FileNamingMode.VideoID;
             options.AutoSaveImages = false;
+            options.AutoLoadURLs = false;
+            options.PublishedDateTitle = false;
             options.SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         }
         private void SaveOptions()
@@ -109,25 +112,29 @@ namespace YouTubeThumbnailGrabber
             ComboBox cb = (ComboBox)sender;
             options.ImageFileNamingMode = (FileNamingMode)cb.SelectedIndex;
         }
-
-        private void CKBAutoSave_Checked(object sender, RoutedEventArgs e)
-        {
-            options.AutoSaveImages = (sender as CheckBox).IsChecked.Value;
-        }
-
-        private void CKBAutoLoad_Checked(object sender, RoutedEventArgs e)
-        {
-            options.AutoLoadURLs = (sender as CheckBox).IsChecked.Value;
-        }
-
-        private void CKBAddPublished_Checked(object sender, RoutedEventArgs e)
-        {
-            options.PublishedDateTitle = (sender as CheckBox).IsChecked.Value;
-        }
-
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveOptions();
+        }
+
+        private void CKBox_CheckChanged(object sender, RoutedEventArgs e)
+        {
+            CheckBox ckbx = e.Source as CheckBox;
+            if (ckbx==null) return;
+            switch (ckbx.Name)
+            {
+                case "CKBAutoSave":
+                    options.AutoSaveImages = ckbx.IsChecked.Value;
+                    break;
+                case "CKBAutoLoad":
+                    options.AutoLoadURLs = ckbx.IsChecked.Value;
+                    break;
+                case "CKBAddPublished":
+                    options.PublishedDateTitle = ckbx.IsChecked.Value;
+                    break;
+                default:
+                    break;
+            }
         }
 
     }

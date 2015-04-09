@@ -9,21 +9,24 @@
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,5">
-            <TextBox x:Name="TBSaveDirectory" Text="" Height="20" Width="285" Margin="0,0,10,0"/>
-            <Button x:Name="BrowseForDirectory" Height="24" Width="25" Content="..." Click="BrowseForDirectory_Click"/>
+            <TextBox x:Name="TBSaveDirectory" Text="" Height="20" Width="280" Margin="0,0,10,0"/>
+            <Button x:Name="BrowseForDirectory" Height="24" Width="30" Content="..." ToolTip="Browse For Directory" Click="BrowseForDirectory_Click"/>
         </StackPanel>
         <Separator VerticalAlignment="Bottom"/>
         <StackPanel Grid.Row="1" Margin="10,5">
             <StackPanel Orientation="Horizontal">
-                <Label Content="File naming mode: " Target="{Binding ElementName=TBSaveDirectory}"/>
-                <ComboBox x:Name="CBNamingMode" Width="205" Margin="0,5" SelectionChanged="CBNamingMode_SelectionChanged">
+                <Label Content="File naming mode: " Target="{Binding ElementName=TBSaveDirectory}" VerticalAlignment="Center"/>
+                <ComboBox x:Name="CBNamingMode" Width="210" Margin="0,5" SelectionChanged="CBNamingMode_SelectionChanged">
                     <ComboBoxItem Content="Channel - Video Title"/>
                     <ComboBoxItem Content="VideoID"/>
                 </ComboBox>
             </StackPanel>
-            <CheckBox x:Name="CKBAutoSave" Content="Automatically save images after grabbing" Margin="0,5" Checked="CKBAutoSave_Checked"/>
-            <CheckBox x:Name="CKBAutoLoad" Content="Automatically load URLS from clipboard" Margin="0,5" Checked="CKBAutoLoad_Checked"/>
-            <CheckBox x:Name="CKBAddPublished" Content="Add published date to title" Margin="0,5" Checked="CKBAddPublished_Checked"/>
+            <CheckBox x:Name="CKBAutoSave" Content="Automatically save images after grabbing" Margin="0,5" Checked="CKBox_CheckChanged" Unchecked="CKBox_CheckChanged"
+                      ToolTip="Automatically saves images to the selected directory as soon as they have been downloaded"/>
+            <CheckBox x:Name="CKBAutoLoad" Content="Automatically load video links from clipboard ((NYI))" Margin="0,5" Checked="CKBox_CheckChanged" Unchecked="CKBox_CheckChanged"
+                      ToolTip="Automatically loads new video links from the clipboard ((NYI))"/>
+            <CheckBox x:Name="CKBAddPublished" Content="Add published date to title" Margin="0,5" Checked="CKBox_CheckChanged" Unchecked="CKBox_CheckChanged"
+                      ToolTip="Adds the date the video was published to the video title"/>
         </StackPanel>
         <Button x:Name="CloseDialog" Content="Close" Grid.Row="2" HorizontalAlignment="Right" Margin="10,5" Width="60" Height="25" Click="CloseDialog_Click"/>
     </Grid>
