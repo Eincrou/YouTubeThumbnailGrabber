@@ -23,8 +23,8 @@
             </StackPanel>
             <CheckBox x:Name="CKBAutoSave" Content="Automatically save images after grabbing" Margin="0,5" Checked="CKBox_CheckChanged" Unchecked="CKBox_CheckChanged"
                       ToolTip="Automatically saves images to the selected directory as soon as they have been downloaded"/>
-            <CheckBox x:Name="CKBAutoLoad" Content="Automatically load video links from clipboard ((NYI))" Margin="0,5" Checked="CKBox_CheckChanged" Unchecked="CKBox_CheckChanged"
-                      ToolTip="Automatically loads new video links from the clipboard ((NYI))"/>
+            <CheckBox x:Name="CKBAutoLoad" Content="Automatically load video links from clipboard" Margin="0,5" Checked="CKBox_CheckChanged" Unchecked="CKBox_CheckChanged"
+                      ToolTip="Automatically loads new video links from the clipboard"/>
             <CheckBox x:Name="CKBAddPublished" Content="Add published date to title" Margin="0,5" Checked="CKBox_CheckChanged" Unchecked="CKBox_CheckChanged"
                       ToolTip="Adds the date the video was published to the video title"/>
         </StackPanel>

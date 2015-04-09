@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
@@ -61,6 +63,10 @@ namespace YouTubeThumbnailGrabber
             }
             else
                 LoadDefaultSettings();
+            if (options.AutoLoadURLs && !monitoringClipboard)
+                InitCBViewer();
+            else if (monitoringClipboard)
+                CloseCBViewer();
 
             folderDialog.Description = "Select a folder to save thumbnail images.";
             folderDialog.SelectedPath = options.SaveImagePath;
@@ -216,7 +222,7 @@ namespace YouTubeThumbnailGrabber
         }
         private void OpenImageInViewerDblClk(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 2)
+            if (e.ClickCount == 2 && Thumbnail != null)
                 OpenImageInViewer();
         }
         private void OpenImageInViewer()
@@ -311,6 +317,7 @@ namespace YouTubeThumbnailGrabber
 
         void optionsMenu_Closed(object sender, EventArgs e)
         {
+            ((OptionsMenu)sender).Closed -= optionsMenu_Closed;
             LoadSettings();
             UpdateStatusBar();
         }
@@ -329,6 +336,73 @@ namespace YouTubeThumbnailGrabber
                 Clipboard.SetText(Thumbnail.VideoURL.ShortYTURL);
                 MessageBox.Show("URL copied to clipboard", "URL Copied", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+        }
+
+        [DllImport("User32.dll")]
+        protected static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        public static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+        private IntPtr hWndNextViewer;
+        private HwndSource hWndSource;
+        private bool monitoringClipboard = false;
+        private void InitCBViewer()
+        {
+            WindowInteropHelper wih = new WindowInteropHelper(this);
+            wih.EnsureHandle();
+            hWndSource = HwndSource.FromHwnd(wih.Handle);
+
+            hWndSource.AddHook(this.WndProc);   // start processing window messages
+            hWndNextViewer = SetClipboardViewer(hWndSource.Handle);   // set this window as a viewer
+            monitoringClipboard = true;
+        }
+        private void CloseCBViewer()
+        {
+            // remove this window from the clipboard viewer chain
+            ChangeClipboardChain(hWndSource.Handle, hWndNextViewer);
+
+            hWndNextViewer = IntPtr.Zero;
+            hWndSource.RemoveHook(this.WndProc);
+            monitoringClipboard = false;
+        }
+        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_DRAWCLIPBOARD = 0x0308;
+            const int WM_CHANGECBCHAIN = 0x030D;
+
+            switch (msg)
+            {
+                case WM_DRAWCLIPBOARD:
+                    if (Clipboard.ContainsText())
+                        ClipboardAutoLoad();
+                    SendMessage(hWndNextViewer, msg, wParam, lParam);
+                    break;
+                case WM_CHANGECBCHAIN:
+                    if (wParam == hWndNextViewer)
+                        hWndNextViewer = lParam;
+                    else
+                        SendMessage(hWndNextViewer, msg, wParam, lParam);
+                    break;                    
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private void ClipboardAutoLoad()
+        {
+            string clipText = Clipboard.GetText();
+            if(YouTubeURL.ValidateYTURL(clipText))
+            {
+                if (Thumbnail != null && (YouTubeURL.GetVideoID(clipText) == Thumbnail.VideoURL.VideoID)) return;
+                InputVideoURL.Text = clipText;
+                GrabThumbnail(clipText);
+            }
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            this.CloseCBViewer();
         }
     }
 }
