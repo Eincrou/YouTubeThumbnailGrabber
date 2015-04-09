@@ -54,7 +54,7 @@
             </Border.BorderBrush>
 
             <Border BorderThickness="2" BorderBrush="White">
-                <Image x:Name="ThumbnailImage" MouseDown="OpenImageInViewerDblClk">
+                <Image x:Name="ThumbnailImage" MouseDown="OpenImageInViewerDblClk" SizeChanged="ThumbnailImage_SizeChanged">
                     <Image.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Copy Image to Clipboard" Click="ImageToClipboardHandler"/>

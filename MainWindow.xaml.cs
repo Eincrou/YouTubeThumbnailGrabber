@@ -356,5 +356,14 @@ namespace YouTubeThumbnailGrabber
         {
             clipboardMonitor.CloseCBViewer();
         }
+
+        private void ThumbnailImage_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (thumbnail == null)return;
+            double imageDisplayArea = e.NewSize.Width * e.NewSize.Height;
+            int imageResolutionArea = thumbnail.ThumbnailImage.PixelWidth * thumbnail.ThumbnailImage.PixelHeight;
+            double zoomPercent = imageDisplayArea / imageResolutionArea;
+            this.Title = String.Format("YouTube Thumbnail Generator ({0:p})", zoomPercent);
+        }
     }
 }
