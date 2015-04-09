@@ -75,6 +75,7 @@ namespace YouTubeThumbnailGrabber
             CKBAutoSave.IsChecked = options.AutoSaveImages;
             CKBAutoLoad.IsChecked = options.AutoLoadURLs;
             CKBAddPublished.IsChecked = options.PublishedDateTitle;
+            CKBVideoViews.IsChecked = options.VideoViews;
             folderDialog.Description = "Select a folder to save thumbnail images.";
             TBSaveDirectory.Text = options.SaveImagePath;
         }
@@ -85,6 +86,7 @@ namespace YouTubeThumbnailGrabber
             options.AutoSaveImages = false;
             options.AutoLoadURLs = false;
             options.PublishedDateTitle = false;
+            options.VideoViews = false;
             options.SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         }
         private void SaveOptions()
@@ -131,6 +133,9 @@ namespace YouTubeThumbnailGrabber
                     break;
                 case "CKBAddPublished":
                     options.PublishedDateTitle = ckbx.IsChecked.Value;
+                    break;
+                case "CKBVideoViews":
+                    options.VideoViews = ckbx.IsChecked.Value;
                     break;
                 default:
                     break;

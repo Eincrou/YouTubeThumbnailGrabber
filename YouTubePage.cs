@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -13,6 +14,16 @@ namespace YouTubeThumbnailGrabber
     {
         public YouTubeURL YTURL {get; private set;}
         public string VideoTitle { get; private set; }
+        private string _videoViewCount;
+        public string VideoViewCount
+        {
+            get
+            {
+                if (_videoViewCount == null)
+                    GetVideoViewCount();
+                return _videoViewCount;
+            }
+        }
         public string ChannelName { get; private set; }
         public Uri ChannelURL { get; private set; }
         private BitmapImage _channelIcon;
@@ -30,13 +41,13 @@ namespace YouTubeThumbnailGrabber
         }
 
         private DateTime? _published;
-        public DateTime? Published
+        public DateTime Published
         {
             get
             {
                 if (!_published.HasValue)
                     GetPublished();
-                return _published;
+                return _published.Value;
             }
         }
 
@@ -58,6 +69,11 @@ namespace YouTubeThumbnailGrabber
             Match titleMatch = Regex.Match(_page, @"<h1\sclass=""yt\swatch-title-container""\s>[^<]*<.*title=\""(.*)\"">");
             string title = titleMatch.Groups[1].Value;
             VideoTitle = WebUtility.HtmlDecode(title);
+        }
+        private void GetVideoViewCount()
+        {
+            Match viewCountMatch = Regex.Match(_page, @"watch-view-count[^>]+>([^<]*)", RegexOptions.IgnoreCase);
+            _videoViewCount = viewCountMatch.Groups[1].Value;
         }
         private void GetChannelInfo()
         {
@@ -95,6 +111,6 @@ namespace YouTubeThumbnailGrabber
             EventHandler chanImageDownloaded = ChanImageDownloaded;
             if (chanImageDownloaded != null)
                 chanImageDownloaded(this, e);
-        }
+        }        
     }
 }

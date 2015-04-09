@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -82,6 +83,7 @@ namespace YouTubeThumbnailGrabber
             options.AutoSaveImages = false;
             options.AutoLoadURLs = false;
             options.PublishedDateTitle = false;
+            options.VideoViews = false;
             options.SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         }
 
@@ -296,10 +298,12 @@ namespace YouTubeThumbnailGrabber
                 SBChanImage.Source = youtubePage.ChannelIcon;
             
             SBURL.Text = youtubePage.YTURL.ShortYTURL;
+            StringBuilder sb = new StringBuilder(youtubePage.VideoTitle);
             if (options.PublishedDateTitle)
-                SBTitle.Text = String.Format("[{0:yy.MM.dd}] {1}", youtubePage.Published.Value, youtubePage.VideoTitle);
-            else
-                SBTitle.Text = youtubePage.VideoTitle;
+                sb.Insert(0, String.Format("[{0:yy.MM.dd}] ", youtubePage.Published));
+            if (options.VideoViews)
+                sb.Append(String.Format( " ({0})", youtubePage.VideoViewCount));
+            SBTitle.Text = sb.ToString();
             SBChannel.Text = youtubePage.ChannelName;           
             channelURL = youtubePage.ChannelURL.OriginalString;
             
