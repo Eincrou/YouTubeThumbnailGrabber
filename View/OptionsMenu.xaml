@@ -1,4 +1,4 @@
-﻿<Window x:Class="YouTubeThumbnailGrabber.OptionsMenu"
+﻿<Window x:Class="YouTubeThumbnailGrabber.View.OptionsMenu"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="YTTG Options" Height="280" Width="360" Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" WindowStyle="ToolWindow" ResizeMode="NoResize" Closing="Window_Closing">

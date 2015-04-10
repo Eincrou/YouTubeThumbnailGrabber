@@ -2,18 +2,34 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace YouTubeThumbnailGrabber
+namespace YouTubeThumbnailGrabber.Model
 {
     /// <summary>
     /// Properties and events related to grabbing and storing YouTube thumbnail images.
     /// </summary>
     public class YouTubeVideoThumbnail
     {
+        /// <summary>
+        /// Instance of a YouTube video URL for this instance of a YouTubeVideoThumbnail
+        /// </summary>
         public YouTubeURL VideoURL { get; private set; }
+        /// <summary>
+        /// URI for full resolution thumbnail image
+        /// </summary>
         public Uri ImageMaxResURI { get; private set; }
+        /// <summary>
+        /// URI for lower-quality thumbnail image
+        /// </summary>
         public Uri ImageAlternateURI { get; private set; }
         private BitmapImage _thumbnailImage;
+        /// <summary>
+        /// Downloaded thumbnail for this YouTubeURL
+        /// </summary>
         public BitmapImage ThumbnailImage { get { return _thumbnailImage; } }
+        /// <summary>
+        /// Gets whether this instance's thumbnail image is the maximum resolution version, or the lower resolution alternative
+        /// </summary>
+        public bool UsingMaxResImage { get; private set; }
         /// <summary>
         /// Initializes a new instance of the YouTubeVideoThumbnail class. Provides members related to storing a YouTubeURL, URLs to video thumbnail images, and events related to downloading them.
         /// </summary>
@@ -58,6 +74,7 @@ namespace YouTubeThumbnailGrabber
         public event EventHandler GetThumbnailSuccess;
         private void OnThumbnailSuccess(object sender, EventArgs e)
         {
+            UsingMaxResImage = true;
             EventHandler getThumbnailSuccess = GetThumbnailSuccess;
             if (getThumbnailSuccess != null)
                 GetThumbnailSuccess(sender, e);

@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace YouTubeThumbnailGrabber
+namespace YouTubeThumbnailGrabber.Model
 {
     /// <summary>
     /// Parses and stores YouTube URLs and VideoIDs.
     /// </summary>
-    public class YouTubeURLAlternate : IFormattable
+    public class YouTubeURL : IFormattable
     {
         private static readonly string[] _idPatterns =
             { 
-                @"(?:\w*://.*)?youtube.com/watch\?(?:feature=player_embedded&)?v=([^\&\?\/]{11})", 
-                @"(?:\w*://.*)?youtube.com/embed/([^\&\?\/]{11})",
-                @"(?:\w*://.*)?youtube.com/v/([^\&\?\/]{11})",
+                @"(?:\w*://.*)?youtube.com/watch\?(?:[^/]+\&)?(?:v|src_vid)=([^\&\?\/]{11})", 
+                @"(?:\w*://.*)?youtube.com/\w*/([^\&\?\/]{11})",
                 @"(?:\w*://.*)?youtu.be/([^\&\?\/]{11})",
                 @"(?:\w*://.*)?youtube.com/verify_age\?next_url=watch%3Fv%3D([^\&\?\/]{11})",
-                @"(?:\w*://.*)?youtube.com/watch\?annotation_id=annotation_\d*\&feature=iv&src_vid=[^\&\?\/]{11}\&v=([^\&\?\/]{11})",
                 @"(?:\w*://.*)?interleave-vr.com/youtube-proper-player.php\?v=([^\&\?\/]{11})"
             };
         private string _inputURL;
@@ -41,7 +38,7 @@ namespace YouTubeThumbnailGrabber
         /// Initializes an instance of the YouTubeURL class.
         /// </summary>
         /// <param name="inputURL">A valid URL for a YouTube video.</param>
-        public YouTubeURLAlternate(string inputURL)
+        public YouTubeURL(string inputURL)
         {
             _inputURL = inputURL;
             _videoID = GetVideoID(inputURL);
@@ -53,44 +50,13 @@ namespace YouTubeThumbnailGrabber
         /// <returns>Eleven-character unique identifier for the video.</returns>
         public static string GetVideoID(string url)
         {
-            if(url.Contains("youtube.com") || url.Contains("youtu.be"))
+            foreach (var pattern in _idPatterns)
             {
-                string domain = url.Contains("youtube.com/") ? "youtube.com/" : "youtu.be/";
-                string urlParams = url.Remove(0, url.IndexOf(domain) + domain.Length);
-                if (urlParams.Length < 11)
-                    throw new ArgumentException("Invalid YouTube video URL", "url");
-                if (urlParams.Contains("?"))
-                    urlParams = urlParams.Remove(urlParams.IndexOf(@"watch?"), 6);
-                if (urlParams.Contains("="))
-                {
-                    var ytParameters = new Dictionary<string, string>();
-                    string[] tempParams = urlParams.Split('&');
-                    if (tempParams.Length > 0)
-                        foreach (string pair in tempParams)
-                        {
-                            string[] temp = pair.Split('=');
-                            ytParameters.Add(temp[0], temp[1]);
-                        }
-                    else
-                    {
-                        string[] temp = urlParams.Split('=');
-                        ytParameters.Add(temp[0], temp[1]);
-                    }
-                    if (ytParameters.ContainsKey("v"))
-                        return ytParameters["v"];
-                    else
-                        throw new ArgumentException("Invalid YouTube video URL", "url");
-                }
-                else if (urlParams.Contains("embed/") || urlParams.Contains("v/"))
-                {
-                    string temp = urlParams.Contains("embed/") ? "embed/" : "v/";
-                    return urlParams.Remove(0, urlParams.IndexOf(temp) + temp.Length);
-                }
-                else
-                    return urlParams;
+                Match match = Regex.Match(url, pattern);
+                if (match.Groups[1].Success)
+                    return match.Groups[1].Value;
             }
-            else
-                throw new ArgumentException("Invalid YouTube video URL", "url");
+            throw new ArgumentException("Invalid YouTube video URL", "url");
         }
         /// <summary>
         /// Checks if the input string can be successfully parsed into a YouTube VideoID.
@@ -101,13 +67,13 @@ namespace YouTubeThumbnailGrabber
         {
             try
             {
-                GetVideoID(URLToCheck);                
+                GetVideoID(URLToCheck);
             }
             catch (ArgumentException)
             {
                 return false;
             }
-            return true;                
+            return true;
         }
         public override string ToString()
         {
@@ -116,7 +82,7 @@ namespace YouTubeThumbnailGrabber
         public string ToString(string format, IFormatProvider formatProvider)
         {
             if (format == null) format = "S";
-            switch (format.ToUpper())
+            switch (format.ToUpperInvariant())
             {
                 case null:
                 case "ID":

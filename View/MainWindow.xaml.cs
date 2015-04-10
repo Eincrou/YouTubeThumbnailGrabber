@@ -9,10 +9,11 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
+using YouTubeThumbnailGrabber.Model;
 using DialogBoxResult = System.Windows.Forms.DialogResult;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
-namespace YouTubeThumbnailGrabber
+namespace YouTubeThumbnailGrabber.View
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -367,7 +368,7 @@ namespace YouTubeThumbnailGrabber
             double imageDisplayArea = e.NewSize.Width * e.NewSize.Height;
             int imageResolutionArea = thumbnail.ThumbnailImage.PixelWidth * thumbnail.ThumbnailImage.PixelHeight;
             double zoomPercent = imageDisplayArea / imageResolutionArea;
-            this.Title = String.Format("YouTube Thumbnail Generator ({0:p})", zoomPercent);
+            this.Title = String.Format("YouTube Thumbnail Grabber ({0:p})", zoomPercent);
         }
     }
 }

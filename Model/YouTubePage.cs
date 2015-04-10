@@ -1,20 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
-namespace YouTubeThumbnailGrabber
+namespace YouTubeThumbnailGrabber.Model
 {
     public class YouTubePage
     {
+        private string _page { get; set; }
+
         public YouTubeURL YTURL {get; private set;}
         public string VideoTitle { get; private set; }
         private string _videoViewCount;
+        /// <summary>
+        /// Gets the number of views for this video page
+        /// </summary>
         public string VideoViewCount
         {
             get
@@ -24,9 +24,18 @@ namespace YouTubeThumbnailGrabber
                 return _videoViewCount;
             }
         }
+        /// <summary>
+        /// Gets the name of the video uploader's channel
+        /// </summary>
         public string ChannelName { get; private set; }
+        /// <summary>
+        /// Gets the URL of the video uploader's channel page
+        /// </summary>
         public Uri ChannelURL { get; private set; }
         private BitmapImage _channelIcon;
+        /// <summary>
+        /// Gets the video uploader's channel icon image
+        /// </summary>
         public BitmapImage ChannelIcon
         {
             get
@@ -39,8 +48,10 @@ namespace YouTubeThumbnailGrabber
                 return _channelIcon;
             }
         }
-
         private DateTime? _published;
+        /// <summary>
+        /// Gets the date the video was uploaded or published
+        /// </summary>
         public DateTime Published
         {
             get
@@ -50,9 +61,10 @@ namespace YouTubeThumbnailGrabber
                 return _published.Value;
             }
         }
-
-        private string _page { get; set; }
-
+        /// <summary>
+        /// Instantiates a new object YouTubePage class that can parse information about YouTube videos from their HTML pages
+        /// </summary>
+        /// <param name="yturl"></param>
         public YouTubePage(YouTubeURL yturl)
         {
             YTURL = yturl;
@@ -60,8 +72,7 @@ namespace YouTubeThumbnailGrabber
             _page = wc.DownloadString(YTURL.LongYTURL);
 
             GetVideoTitle();
-            GetChannelInfo();
-            
+            GetChannelInfo();            
         }
 
         private void GetVideoTitle()
@@ -73,14 +84,16 @@ namespace YouTubeThumbnailGrabber
         private void GetVideoViewCount()
         {
             Match viewCountMatch = Regex.Match(_page, @"watch-view-count[^>]+>([^<]*)", RegexOptions.IgnoreCase);
-            _videoViewCount = viewCountMatch.Groups[1].Value;
+            string views = viewCountMatch.Groups[1].Value;
+            if (!views.Contains(" views"))
+                views += " views";
+            _videoViewCount = views;
         }
         private void GetChannelInfo()
         {
             Match channelMatch = Regex.Match(_page, @"<div\sclass=""yt-user-info"">[^<]*<.*href=""([^""]*)"".*>(.*)</a>");
             ChannelURL = new Uri(@"http://www.youtube.com" + channelMatch.Groups[1].Value, UriKind.Absolute);
-            string channelName = channelMatch.Groups[2].Value;
-            ChannelName = WebUtility.HtmlDecode(channelName);
+            ChannelName = WebUtility.HtmlDecode(channelMatch.Groups[2].Value);
         }
         private void GetChannelIcon()
         {

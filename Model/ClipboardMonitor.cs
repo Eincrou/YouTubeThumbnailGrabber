@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 
-namespace YouTubeThumbnailGrabber
+namespace YouTubeThumbnailGrabber.Model
 {
     class ClipboardMonitor
     {
-        private MainWindow mainWindow;
+        private Window window;
         private IntPtr hWndNextViewer;
         private HwndSource hWndSource;
 
@@ -19,14 +17,20 @@ namespace YouTubeThumbnailGrabber
         private const int WM_CHANGECBCHAIN = 0x030D;
 
         public bool IsMonitoringClipboard = false;
-
-        public ClipboardMonitor(MainWindow mw)
+        /// <summary>
+        /// Initializes a new instance of the ClipboardMonitor class to allow clipboard updates for the specified window
+        /// </summary>
+        /// <param name="win"></param>
+        public ClipboardMonitor(Window win)
         {
-            mainWindow = mw;
+            window = win;
         }
+        /// <summary>
+        /// Starts monitoring the clipboard for changes
+        /// </summary>
         public void InitCBViewer()
         {
-            WindowInteropHelper wih = new WindowInteropHelper(mainWindow);
+            WindowInteropHelper wih = new WindowInteropHelper(window);
             wih.EnsureHandle();
             hWndSource = HwndSource.FromHwnd(wih.Handle);
 
@@ -34,6 +38,9 @@ namespace YouTubeThumbnailGrabber
             hWndNextViewer = SetClipboardViewer(hWndSource.Handle);
             IsMonitoringClipboard = true;
         }
+        /// <summary>
+        /// Stops monitoring the clipboard for changes
+        /// </summary>
         public void CloseCBViewer()
         {
             ChangeClipboardChain(hWndSource.Handle, hWndNextViewer);
@@ -49,6 +56,8 @@ namespace YouTubeThumbnailGrabber
                 case WM_DRAWCLIPBOARD:
                     if (Clipboard.ContainsText())
                         OnClipboardTextChanged(Clipboard.GetText());
+                    else if (Clipboard.ContainsImage())
+                        ClipboardImageToBitmap();
                     SendMessage(hWndNextViewer, msg, wParam, lParam);
                     break;
                 case WM_CHANGECBCHAIN:
@@ -61,12 +70,37 @@ namespace YouTubeThumbnailGrabber
             return IntPtr.Zero;
         }
 
+        private void ClipboardImageToBitmap()
+        {
+            MemoryStream ms = new MemoryStream();
+            BmpBitmapEncoder enc = new BmpBitmapEncoder();
+            enc.Frames.Add(BitmapFrame.Create(Clipboard.GetImage()));
+            enc.Save(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            BmpBitmapDecoder dec = new BmpBitmapDecoder(ms,
+                BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+            OnClipboardImageChanged(dec.Frames[0]);
+        }
+        /// <summary>
+        /// Notifies when text in the clipboard has changed
+        /// </summary>
         public event EventHandler<ClipboardEventArgs> ClipboardTextChanged;
         private void OnClipboardTextChanged(string clipboardText)
         {
             EventHandler<ClipboardEventArgs> clipboardTextChanged = ClipboardTextChanged;
             if (clipboardTextChanged != null)
                 ClipboardTextChanged(this, new ClipboardEventArgs(clipboardText));
+        }
+        /// <summary>
+        /// Notifies when the image in the clipboard has changed
+        /// </summary>
+        public event EventHandler<ClipboardEventArgs> ClipboardImageChanged;
+        private void OnClipboardImageChanged(BitmapFrame clipboardImage)
+        {
+            EventHandler<ClipboardEventArgs> clipboardImageChanged = ClipboardImageChanged;
+            if (clipboardImageChanged != null)
+                ClipboardImageChanged(this, new ClipboardEventArgs(clipboardImage));
         }
 
         [DllImport("User32.dll")]
