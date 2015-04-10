@@ -104,10 +104,10 @@ namespace YouTubeThumbnailGrabber.Model
         }
 
         [DllImport("User32.dll")]
-        protected static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+        private static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
-        public static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
+        private static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
     }
 }

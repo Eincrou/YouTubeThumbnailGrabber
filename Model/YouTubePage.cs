@@ -8,8 +8,13 @@ namespace YouTubeThumbnailGrabber.Model
     public class YouTubePage
     {
         private string _page { get; set; }
-
+        /// <summary>
+        /// Contains numerous fields with various YouTube URLs
+        /// </summary>
         public YouTubeURL YTURL {get; private set;}
+        /// <summary>
+        /// The title of this YouTube video
+        /// </summary>
         public string VideoTitle { get; private set; }
         private string _videoViewCount;
         /// <summary>
@@ -34,7 +39,7 @@ namespace YouTubeThumbnailGrabber.Model
         public Uri ChannelURL { get; private set; }
         private BitmapImage _channelIcon;
         /// <summary>
-        /// Gets the video uploader's channel icon image
+        /// Gets the video uploader's channel icon image. If null is returned, listen to the ChanImageDownloaded event to be notified when the download is complete
         /// </summary>
         public BitmapImage ChannelIcon
         {
@@ -61,6 +66,19 @@ namespace YouTubeThumbnailGrabber.Model
                 return _published.Value;
             }
         }
+        private string _videoDescription;
+        /// <summary>
+        /// The uploader's description of this video
+        /// </summary>
+        public string VideoDescription
+        {
+            get
+            {
+                if (_videoDescription == null)
+                    GetVideoDescription();
+                return _videoDescription;
+            }
+        }
         /// <summary>
         /// Instantiates a new object YouTubePage class that can parse information about YouTube videos from their HTML pages
         /// </summary>
@@ -84,9 +102,15 @@ namespace YouTubeThumbnailGrabber.Model
         private void GetVideoViewCount()
         {
             Match viewCountMatch = Regex.Match(_page, @"watch-view-count[^>]+>([^<]*)", RegexOptions.IgnoreCase);
-            string views = viewCountMatch.Groups[1].Value;
-            if (!views.Contains(" views"))
-                views += " views";
+            string views;
+            if (viewCountMatch.Groups[1].Value != String.Empty)
+            {
+                views = viewCountMatch.Groups[1].Value;
+                if (!views.Contains(" views"))
+                    views += " views";
+            }
+            else
+                views = "LIVE NOW";
             _videoViewCount = views;
         }
         private void GetChannelInfo()
@@ -109,11 +133,17 @@ namespace YouTubeThumbnailGrabber.Model
 
         private void GetPublished()
         {
-            Match pubMatch = Regex.Match(_page, @"(?:Published|Uploaded)\son\s([^<]*)");
+            Match pubMatch = Regex.Match(_page, @"(?:Published|Uploaded|Started)\son\s([^<]*)");
             if (pubMatch.Groups[1].Success)
                 _published = DateTime.Parse(pubMatch.Groups[1].Value);
             else
                 _published = new DateTime();
+        }
+        private void GetVideoDescription()
+        {
+            Match vidDescMatch = Regex.Match(_page, @"(?i)eow-description""\s>([^<]*)");
+            string description = vidDescMatch.Groups[1].Value;
+            _videoDescription = WebUtility.HtmlDecode(description);
         }
         /// <summary>
         /// Notifies when the channel icon image has completed downloading.

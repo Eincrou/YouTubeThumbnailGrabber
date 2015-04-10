@@ -245,9 +245,7 @@ namespace YouTubeThumbnailGrabber.View
                     break;
                 }
             if (fileExists)
-            {
                 System.Diagnostics.Process.Start(existingFile);
-            }
             else
             {
                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
@@ -306,8 +304,7 @@ namespace YouTubeThumbnailGrabber.View
                 sb.Append(String.Format( " ({0})", youtubePage.VideoViewCount));
             SBTitle.Text = sb.ToString();
             SBChannel.Text = youtubePage.ChannelName;           
-            channelURL = youtubePage.ChannelURL.OriginalString;
-            
+            channelURL = youtubePage.ChannelURL.OriginalString;            
         }
         void ytp_ChanImageDownloaded(object sender, EventArgs e)
         {
@@ -364,7 +361,7 @@ namespace YouTubeThumbnailGrabber.View
 
         private void ThumbnailImage_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (thumbnail == null)return;
+            if (thumbnail == null) return;
             double imageDisplayArea = e.NewSize.Width * e.NewSize.Height;
             int imageResolutionArea = thumbnail.ThumbnailImage.PixelWidth * thumbnail.ThumbnailImage.PixelHeight;
             double zoomPercent = imageDisplayArea / imageResolutionArea;
