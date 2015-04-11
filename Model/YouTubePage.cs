@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
 
@@ -7,7 +8,7 @@ namespace YouTubeThumbnailGrabber.Model
 {
     public class YouTubePage
     {
-        private string _page { get; set; }
+        private string _page;
         /// <summary>
         /// Contains numerous fields with various YouTube URLs
         /// </summary>
@@ -15,8 +16,16 @@ namespace YouTubeThumbnailGrabber.Model
         /// <summary>
         /// The title of this YouTube video
         /// </summary>
-        public string VideoTitle { get; private set; }
-        private string _videoViewCount;
+        public string VideoTitle
+        {
+            get
+            {
+                if (_videoTitle == null)
+                    GetVideoTitle();
+                return _videoTitle;
+            }
+        }
+        private string _videoTitle;
         /// <summary>
         /// Gets the number of views for this video page
         /// </summary>
@@ -29,15 +38,33 @@ namespace YouTubeThumbnailGrabber.Model
                 return _videoViewCount;
             }
         }
+        private string _videoViewCount;
         /// <summary>
         /// Gets the name of the video uploader's channel
         /// </summary>
-        public string ChannelName { get; private set; }
+        public string ChannelName
+        {
+            get
+            {
+                if (_channelName == null)
+                    GetChannelInfo();
+                return _channelName;
+            }
+        }
+        private string _channelName;
         /// <summary>
         /// Gets the URL of the video uploader's channel page
         /// </summary>
-        public Uri ChannelURL { get; private set; }
-        private BitmapImage _channelIcon;
+        public Uri ChannelURL
+        {
+            get
+            {
+                if (_channelURL == null)
+                    GetChannelInfo();
+                return _channelURL;
+            }
+        }
+        private Uri _channelURL;
         /// <summary>
         /// Gets the video uploader's channel icon image. If null is returned, listen to the ChanImageDownloaded event to be notified when the download is complete
         /// </summary>
@@ -53,7 +80,7 @@ namespace YouTubeThumbnailGrabber.Model
                 return _channelIcon;
             }
         }
-        private DateTime? _published;
+        private BitmapImage _channelIcon;        
         /// <summary>
         /// Gets the date the video was uploaded or published
         /// </summary>
@@ -66,6 +93,7 @@ namespace YouTubeThumbnailGrabber.Model
                 return _published.Value;
             }
         }
+        private DateTime? _published;
         private string _videoDescription;
         /// <summary>
         /// The uploader's description of this video
@@ -86,26 +114,23 @@ namespace YouTubeThumbnailGrabber.Model
         public YouTubePage(YouTubeURL yturl)
         {
             YTURL = yturl;
-            WebClient wc = new WebClient();
-            _page = wc.DownloadString(YTURL.LongYTURL);
-
-            GetVideoTitle();
-            GetChannelInfo();            
+            HttpDownloader downloader = new HttpDownloader(YTURL.LongYTURL, String.Empty, String.Empty);
+            _page = downloader.GetPage();
         }
 
         private void GetVideoTitle()
         {
-            Match titleMatch = Regex.Match(_page, @"<h1\sclass=""yt\swatch-title-container""\s>[^<]*<.*title=\""(.*)\"">");
-            string title = titleMatch.Groups[1].Value;
-            VideoTitle = WebUtility.HtmlDecode(title);
+            Match titleMatch = Regex.Match(_page, @"<h1\sclass=""yt\swatch-title-container""\s>[^<]*<.*title=\""(?<title>.*)\"">");
+            string title = titleMatch.Groups["title"].Value;
+            _videoTitle = WebUtility.HtmlDecode(title);
         }
         private void GetVideoViewCount()
         {
-            Match viewCountMatch = Regex.Match(_page, @"watch-view-count[^>]+>([^<]*)", RegexOptions.IgnoreCase);
+            Match viewCountMatch = Regex.Match(_page, @"watch-view-count[^>]+>(?<views>[^<]*)", RegexOptions.IgnoreCase);
             string views;
-            if (viewCountMatch.Groups[1].Value != String.Empty)
+            if (viewCountMatch.Groups["views"].Value != String.Empty)
             {
-                views = viewCountMatch.Groups[1].Value;
+                views = viewCountMatch.Groups["views"].Value;
                 if (!views.Contains(" views"))
                     views += " views";
             }
@@ -115,14 +140,15 @@ namespace YouTubeThumbnailGrabber.Model
         }
         private void GetChannelInfo()
         {
-            Match channelMatch = Regex.Match(_page, @"<div\sclass=""yt-user-info"">[^<]*<.*href=""([^""]*)"".*>(.*)</a>");
-            ChannelURL = new Uri(@"http://www.youtube.com" + channelMatch.Groups[1].Value, UriKind.Absolute);
-            ChannelName = WebUtility.HtmlDecode(channelMatch.Groups[2].Value);
+            Match channelMatch = Regex.Match(_page, @"<div\sclass=""yt-user-info"">[^<]*<.*href=""(?<chanUrl>[^""]*)"".*>(?<chanName>.*)</a>");
+            _channelURL = new Uri(@"http://www.youtube.com" + channelMatch.Groups["chanUrl"].Value, UriKind.Absolute);
+            _channelName = WebUtility.HtmlDecode(channelMatch.Groups["chanName"].Value);
         }
         private void GetChannelIcon()
         {
-            Match chanImageMatch = Regex.Match(_page, @"(?im)^\s+<img.*data-thumb=""([^""]*)""");
-            BitmapImage chanImageIcon = new BitmapImage(new Uri(chanImageMatch.Groups[1].Value, UriKind.Absolute));
+            Match chanImageMatch = Regex.Match(_page, @"(?im)^\s+<img.*data-thumb=""(?<imageUrl>[^""]*)""");
+            BitmapImage chanImageIcon = new BitmapImage(
+                new Uri(chanImageMatch.Groups["imageUrl"].Value, UriKind.Absolute));
             chanImageIcon.DownloadCompleted += chanImageIcon_DownloadCompleted;
         }
         void chanImageIcon_DownloadCompleted(object sender, EventArgs e)
@@ -133,16 +159,16 @@ namespace YouTubeThumbnailGrabber.Model
 
         private void GetPublished()
         {
-            Match pubMatch = Regex.Match(_page, @"(?:Published|Uploaded|Started)\son\s([^<]*)");
-            if (pubMatch.Groups[1].Success)
-                _published = DateTime.Parse(pubMatch.Groups[1].Value);
+            Match pubMatch = Regex.Match(_page, @"(?:Published|Uploaded|Started)\son\s(?<date>[^<]*)");
+            if (pubMatch.Groups["date"].Success)
+                _published = DateTime.Parse(pubMatch.Groups["date"].Value);
             else
                 _published = new DateTime();
         }
         private void GetVideoDescription()
         {
-            Match vidDescMatch = Regex.Match(_page, @"(?i)eow-description""\s>([^<]*)");
-            string description = vidDescMatch.Groups[1].Value;
+            Match vidDescMatch = Regex.Match(_page, @"(?i)eow-description""\s>(?<desc>[^<]*)");
+            string description = vidDescMatch.Groups["desc"].Value;
             _videoDescription = WebUtility.HtmlDecode(description);
         }
         /// <summary>

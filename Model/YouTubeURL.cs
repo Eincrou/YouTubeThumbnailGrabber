@@ -10,11 +10,11 @@ namespace YouTubeThumbnailGrabber.Model
     {
         private static readonly string[] _idPatterns =
             { 
-                @"(?:\w*://.*)?youtube.com/watch\?(?:[^/]+\&)?(?:v|src_vid)=([^\&\?\/]{11})", 
-                @"(?:\w*://.*)?youtube.com/\w*/([^\&\?\/]{11})",
-                @"(?:\w*://.*)?youtu.be/([^\&\?\/]{11})",
-                @"(?:\w*://.*)?youtube.com/verify_age\?next_url=watch%3Fv%3D([^\&\?\/]{11})",
-                @"(?:\w*://.*)?interleave-vr.com/youtube-proper-player.php\?v=([^\&\?\/]{11})"
+                @"youtube.com/watch\?([^/]+\&)?(v|src_vid)=(?<v>[^\&\?\/]{11})", 
+                @"youtube.com/\w*/(?<v>[^\&\?\/]{11})",
+                @"youtu.be/(?<v>[^\&\?\/]{11})",
+                @"youtube.com/verify_age\?next_url=watch%3Fv%3D(?<v>[^\&\?\/]{11})",
+                @"interleave-vr.com/youtube-proper-player.php\?v=(?<v>[^\&\?\/]{11})"
             };
         private string _inputURL;
         private string _videoID;
@@ -52,9 +52,9 @@ namespace YouTubeThumbnailGrabber.Model
         {
             foreach (var pattern in _idPatterns)
             {
-                Match match = Regex.Match(url, pattern);
-                if (match.Groups[1].Success)
-                    return match.Groups[1].Value;
+                Match match = Regex.Match(url, pattern, RegexOptions.ExplicitCapture);
+                if (match.Groups["v"].Success)
+                    return match.Groups["v"].Value;
             }
             throw new ArgumentException("Invalid YouTube video URL", "url");
         }
