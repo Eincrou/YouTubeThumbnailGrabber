@@ -14,26 +14,25 @@ namespace YouTubeThumbnailGrabber.View
     /// </summary>
     public partial class OptionsMenu : Window
     {
-        private FolderBrowserDialog folderDialog = new FolderBrowserDialog();
-        private Options options;
-        private string configPath;
-        public OptionsMenu()
+        private readonly FolderBrowserDialog _folderDialog = new FolderBrowserDialog();
+        private Options _options;
+        private readonly string _configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xml");
+        public OptionsMenu(Options options)
         {
             InitializeComponent();
-
-            configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xml");
+            _options = options;
             LoadSettings();
         }
         private void BrowseForDirectory_Click(object sender, RoutedEventArgs e)
         {
             if (!String.IsNullOrEmpty(TBSaveDirectory.Text) && !String.IsNullOrWhiteSpace(TBSaveDirectory.Text))
-                folderDialog.SelectedPath = TBSaveDirectory.Text;
+                _folderDialog.SelectedPath = TBSaveDirectory.Text;
             else
-                folderDialog.SelectedPath = options.SaveImagePath;
-                if (folderDialog.ShowDialog() == DialogBoxResult.OK)
+                _folderDialog.SelectedPath = _options.SaveImagePath;
+                if (_folderDialog.ShowDialog() == DialogBoxResult.OK)
                 {
-                    options.SaveImagePath = folderDialog.SelectedPath;
-                    TBSaveDirectory.Text = options.SaveImagePath;
+                    _options.SaveImagePath = _folderDialog.SelectedPath;
+                    TBSaveDirectory.Text = _options.SaveImagePath;
                 }
         }
         private void CloseDialog_Click(object sender, RoutedEventArgs e)
@@ -43,52 +42,21 @@ namespace YouTubeThumbnailGrabber.View
 
         private void LoadSettings()
         {
-            if (File.Exists(configPath))
-            {
-                XmlSerializer xml = new XmlSerializer(typeof(Options));
-                using (Stream input = File.OpenRead(configPath))
-                {
-                    try
-                    {
-                        options = (Options)xml.Deserialize(input);
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show("Configuration failed to load.  Using default settings.", "Load settings failed.", MessageBoxButton.OK, MessageBoxImage.Error);
-                        LoadDefaultSettings();
-                    }
-                }
-            }
-            else
-                LoadDefaultSettings();
-
-            CBNamingMode.SelectedIndex = (int)options.ImageFileNamingMode;
-            CKBAutoSave.IsChecked = options.AutoSaveImages;
-            CKBAutoLoad.IsChecked = options.AutoLoadURLs;
-            CKBAddPublished.IsChecked = options.PublishedDateTitle;
-            CKBVideoViews.IsChecked = options.VideoViews;
-            folderDialog.Description = "Select a folder to save thumbnail images.";
-            TBSaveDirectory.Text = options.SaveImagePath;
-        }
-        private void LoadDefaultSettings()
-        {
-            options = new Options
-            {
-                ImageFileNamingMode = FileNamingMode.VideoID,
-                AutoSaveImages = false,
-                AutoLoadURLs = false,
-                PublishedDateTitle = false,
-                VideoViews = false,
-                SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
-            };
+            CBNamingMode.SelectedIndex = (int)_options.ImageFileNamingMode;
+            CKBAutoSave.IsChecked = _options.AutoSaveImages;
+            CKBAutoLoad.IsChecked = _options.AutoLoadURLs;
+            CKBAddPublished.IsChecked = _options.PublishedDateTitle;
+            CKBVideoViews.IsChecked = _options.VideoViews;
+            _folderDialog.Description = "Select a folder to save thumbnail images.";
+            TBSaveDirectory.Text = _options.SaveImagePath;
         }
         private void SaveOptions()
         {
             try
             {
                 XmlSerializer xml = new XmlSerializer(typeof(Options));
-                using (Stream output = File.Create(configPath))
-                    xml.Serialize(output, options);
+                using (Stream output = File.Create(_configPath))
+                    xml.Serialize(output, _options);
             }
             catch (System.UnauthorizedAccessException)
             {
@@ -105,7 +73,7 @@ namespace YouTubeThumbnailGrabber.View
         private void CBNamingMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cb = (ComboBox)sender;
-            options.ImageFileNamingMode = (FileNamingMode)cb.SelectedIndex;
+            _options.ImageFileNamingMode = (FileNamingMode)cb.SelectedIndex;
         }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -119,21 +87,20 @@ namespace YouTubeThumbnailGrabber.View
             switch (ckbx.Name)
             {
                 case "CKBAutoSave":
-                    options.AutoSaveImages = ckbx.IsChecked.Value;
+                    _options.AutoSaveImages = ckbx.IsChecked.Value;
                     break;
                 case "CKBAutoLoad":
-                    options.AutoLoadURLs = ckbx.IsChecked.Value;
+                    _options.AutoLoadURLs = ckbx.IsChecked.Value;
                     break;
                 case "CKBAddPublished":
-                    options.PublishedDateTitle = ckbx.IsChecked.Value;
+                    _options.PublishedDateTitle = ckbx.IsChecked.Value;
                     break;
                 case "CKBVideoViews":
-                    options.VideoViews = ckbx.IsChecked.Value;
+                    _options.VideoViews = ckbx.IsChecked.Value;
                     break;
                 default:
                     break;
             }
         }
-
     }
 }

@@ -15,7 +15,7 @@
         <Separator VerticalAlignment="Bottom"/>
         <StackPanel Grid.Row="1" Margin="10,5">
             <StackPanel Orientation="Horizontal">
-                <Label Content="File naming mode (NYI): " Target="{Binding ElementName=TBSaveDirectory}" VerticalAlignment="Center"/>
+                <Label Content="File naming mode: " Target="{Binding ElementName=TBSaveDirectory}" VerticalAlignment="Center"/>
                 <ComboBox x:Name="CBNamingMode" Width="180" Margin="0,5" SelectionChanged="CBNamingMode_SelectionChanged">
                     <ComboBoxItem Content="Channel - Video Title"/>
                     <ComboBoxItem Content="VideoID"/>

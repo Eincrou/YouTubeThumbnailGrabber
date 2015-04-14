@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace YouTubeThumbnailGrabber.Model
@@ -12,7 +13,7 @@ namespace YouTubeThumbnailGrabber.Model
         /// <summary>
         /// Contains numerous fields with various YouTube URLs
         /// </summary>
-        public YouTubeURL YTURL {get; private set;}
+        public YouTubeURL VideoUrl {get; private set;}
         /// <summary>
         /// The title of this YouTube video
         /// </summary>
@@ -90,7 +91,7 @@ namespace YouTubeThumbnailGrabber.Model
             {
                 if (!_published.HasValue)
                     GetPublished();
-                if (_published != null) return _published.Value;
+                return _published.Value;
             }
         }
         private DateTime? _published;
@@ -113,8 +114,8 @@ namespace YouTubeThumbnailGrabber.Model
         /// <param name="yturl"></param>
         public YouTubePage(YouTubeURL yturl)
         {
-            YTURL = yturl;
-            var downloader = new HttpDownloader(YTURL.LongYTURL, String.Empty, String.Empty);
+            VideoUrl = yturl;
+            var downloader = new HttpDownloader(VideoUrl.LongYTURL, String.Empty, String.Empty);
             _page = downloader.GetPage();
         }
 
@@ -150,11 +151,19 @@ namespace YouTubeThumbnailGrabber.Model
             var chanImageIcon = new BitmapImage(
                 new Uri(chanImageMatch.Groups["imageUrl"].Value, UriKind.Absolute));
             chanImageIcon.DownloadCompleted += chanImageIcon_DownloadCompleted;
+            chanImageIcon.DownloadFailed += chanImageIcon_DownloadFailed;
+
         }
         void chanImageIcon_DownloadCompleted(object sender, EventArgs e)
         {
             _channelIcon = (BitmapImage)sender;
+            _channelIcon.DownloadCompleted -= chanImageIcon_DownloadCompleted;
             OnChanImageDownloaded(e);
+        }
+        void chanImageIcon_DownloadFailed(object sender, System.Windows.Media.ExceptionEventArgs e)
+        {
+            ((BitmapImage) sender).DownloadFailed -= chanImageIcon_DownloadFailed;
+            MessageBox.Show("The channel image icon has failed to download.");
         }
 
         private void GetPublished()

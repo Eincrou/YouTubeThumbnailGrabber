@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,35 +17,111 @@ using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
 namespace YouTubeThumbnailGrabber.ViewModel
 {
-    public class ViewModel
+    public class ViewModel : INotifyPropertyChanged
     {
         private string _channelUrl;
+        private bool _isUpdatingThumbnail = false;
         private readonly string _configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xml");
-        private string SaveImageFilename { get { return System.IO.Path.Combine(_options.SaveImagePath, _thumbnail.VideoURL.VideoID) + ".jpg"; } }
+
+        private string SaveImageFilename
+        {
+            get
+            {
+                string imageJpgFileName;
+                switch (_options.ImageFileNamingMode)
+                {
+                    case FileNamingMode.ChannelTitle:
+                        string workingFileName = String.Format("{0} - {1}", _youtubePage.ChannelName,_youtubePage.VideoTitle);
+                        foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                        {
+                            workingFileName = workingFileName.Replace(c, '-');
+                        }
+                        imageJpgFileName =  workingFileName;
+                        break;
+                    case FileNamingMode.VideoID:
+                        imageJpgFileName = _thumbnail.VideoUrl.VideoID;
+                        break;
+                    default:
+                        throw new InvalidEnumArgumentException("An invalid FileNamingMode was found.");
+                }
+                return System.IO.Path.Combine(_options.SaveImagePath, imageJpgFileName) + ".jpg";
+            }
+        }
 
         private readonly BitmapImage _defaultThumbnail = new BitmapImage(new Uri(@"\Resources\YouTubeThumbnailUnavailable.jpg", UriKind.Relative));
-        private readonly ClipboardMonitor _clipboardMonitor;
+        private ClipboardMonitor _clipboardMonitor;
         private readonly FolderBrowserDialog _folderDialog = new FolderBrowserDialog();
         private Options _options;
         private YouTubeVideoThumbnail _thumbnail;
         private YouTubePage _youtubePage;
 
+        public bool IsThumbnailDisplayed { get { return !(_thumbnail == null); } }
+        public BitmapImage ThumbnailBitmapImage
+        {
+            get
+            {
+                if (_isUpdatingThumbnail) return null;
+                return (_thumbnail != null) ? _thumbnail.ThumbnailImage : _defaultThumbnail;
+            }
+        }
+
         /* 
          * These status bar fields will be made into a class.... later.
          */
-        public string StsBrURL { get; set; }
-        public string StsBrTitle { get; set; }
-        public BitmapImage StsBrChanImage { get; set; }
-        public string StsBrChanName { get; set; }
 
-        public ViewModel(Window mainWindow)
+        public string StsBrUrl
+        {
+            get { return _stsBrUrl; }
+            set
+            {
+                _stsBrUrl = value;
+                OnPropertyChanged("StsBrUrl");
+            }
+        }
+        private string _stsBrUrl;
+        public string StsBrTitle
+        {
+            get { return _stsBrTitle; }
+            set
+            {
+                _stsBrTitle = value;
+                OnPropertyChanged("StsBrTitle");
+            }
+        }
+        private string _stsBrTitle;
+        public BitmapImage StsBrChanImage
+        {
+            get { return _stsBrChanImage; }
+            private set
+            {
+                _stsBrChanImage = value;
+                OnPropertyChanged("StsBrChanImage");
+            }
+        }
+        private BitmapImage _stsBrChanImage;
+        public string StsBrChanName
+        {
+            get { return _stsBrChanName; }
+            private set
+            {
+                _stsBrChanName = value;
+                OnPropertyChanged("StsBrChanName");
+            }
+        }
+        private string _stsBrChanName;
+
+        public ViewModel()
+        {
+            
+        }
+
+        public void InitializeViewModel(Window mainWindow)
         {
             _clipboardMonitor = new ClipboardMonitor(mainWindow);
             _clipboardMonitor.ClipboardTextChanged += clipboardMonitor_ClipboardTextChanged;
             mainWindow.Closed += mainWindow_Closed;
             ReadSettings();
         }
-
 
         #region private Methods		
         private void ReadSettings()
@@ -89,12 +166,15 @@ namespace YouTubeThumbnailGrabber.ViewModel
         }
         private void UpdateStatusBar()
         {
+            // Where to instantiate new object so it doesn't block?
+            if (_youtubePage == null || !(_youtubePage.VideoUrl).Equals(_thumbnail.VideoUrl))
+                _youtubePage = new YouTubePage(_thumbnail.VideoUrl);
             if (_youtubePage.ChannelIcon == null)
                 _youtubePage.ChanImageDownloaded += youtubePage_ChanImageDownloaded;
             else
                 StsBrChanImage = _youtubePage.ChannelIcon;
 
-            StsBrURL = _youtubePage.YTURL.ShortYTURL;
+            StsBrUrl = _youtubePage.VideoUrl.ShortYTURL;
             StringBuilder sb = new StringBuilder(_youtubePage.VideoTitle);
             if (_options.PublishedDateTitle)
                 sb.Insert(0, String.Format("[{0:yy.MM.dd}] ", _youtubePage.Published));
@@ -103,8 +183,6 @@ namespace YouTubeThumbnailGrabber.ViewModel
             StsBrTitle = sb.ToString();
             StsBrChanName = _youtubePage.ChannelName;
             _channelUrl = _youtubePage.ChannelUri.OriginalString;
-
-            OnStatusBarUpdated();
         }
         #endregion
 
@@ -118,21 +196,23 @@ namespace YouTubeThumbnailGrabber.ViewModel
         {
             if (YouTubeURL.ValidateYTURL(url))
             {
-                if (_thumbnail != null && (YouTubeURL.GetVideoID(url) == _thumbnail.VideoURL.VideoID))
+                if (_thumbnail != null && (YouTubeURL.GetVideoID(url) == _thumbnail.VideoUrl.VideoID))
                 {
-                    MessageBox.Show("This video's thumbnail is already being displayed.", "Duplicate URL");
                     return false;
+                    //    MessageBox.Show("This video's thumbnail is already being displayed.", "Duplicate URL");
                 }
+                _isUpdatingThumbnail = true;
+                OnPropertyChanged("ThumbnailBitmapImage");
                 _thumbnail = new YouTubeVideoThumbnail(url);
                 _thumbnail.GetThumbnailSuccess += Image_DownloadCompleted;
                 _thumbnail.GetThumbailFailure += Image_DownloadFailed;
                 _thumbnail.ThumbnailImage.DownloadProgress += Image_DownloadProgress;
 
-                _youtubePage = new YouTubePage(_thumbnail.VideoURL);
+                _youtubePage = new YouTubePage(_thumbnail.VideoUrl);
                 return true;
             }
             else
-                return false;               
+                return false;
         }
         /// <summary>
         /// Saves the currently displayed thumbnail image to a .jpg file
@@ -170,12 +250,14 @@ namespace YouTubeThumbnailGrabber.ViewModel
                         "Configuration Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
+                MessageBox.Show("Video Thumbnail Saved to\n" + fileName, "Image Successfully Saved",
+                    MessageBoxButton.OK, MessageBoxImage.Asterisk);
                 return true;
             }
         }
 
         public void OpenImageInViewer() {
-            string tempDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Temp\" + thumbnail.VideoURL.VideoID + ".jpg";
+            string tempDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Temp\" + _thumbnail.VideoUrl.VideoID + ".jpg";
             string[] checkLocations = { SaveImageFilename, tempDirectory };
             bool fileExists = false;
             string existingFile = String.Empty;
@@ -189,7 +271,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
                 System.Diagnostics.Process.Start(existingFile);
             else {
                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(thumbnail.ThumbnailImage as BitmapImage));
+                encoder.Frames.Add(BitmapFrame.Create(_thumbnail.ThumbnailImage as BitmapImage));
                 try {
                     using (Stream output = File.Create(tempDirectory))
                         encoder.Save(output);
@@ -204,7 +286,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
         }
         public void OpenVideoInBrowser() {
             if (_thumbnail == null) return;
-            System.Diagnostics.Process.Start(_thumbnail.VideoURL.LongYTURL);
+            System.Diagnostics.Process.Start(_thumbnail.VideoUrl.LongYTURL);
         }
 
         public void SetImageToClipboard()
@@ -214,7 +296,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
         public void SetVideoUrlToClipboard()
         {
             if (_thumbnail == null) return; 
-            Clipboard.SetText(_thumbnail.VideoURL.ShortYTURL);
+            Clipboard.SetText(_thumbnail.VideoUrl.ShortYTURL);
         }
         public void SetChannelUrlToClipboard()
         {
@@ -229,8 +311,9 @@ namespace YouTubeThumbnailGrabber.ViewModel
 
         public void OpenOptionsMenu()
         {
-            var opMenu = new OptionsMenu();
+            var opMenu = new OptionsMenu(_options);
             opMenu.Closed += opMenu_Closed;
+            opMenu.ShowDialog();
         }
         #endregion
 
@@ -240,27 +323,31 @@ namespace YouTubeThumbnailGrabber.ViewModel
         {
             string clipText = e.ClipboardText;
             if (!YouTubeURL.ValidateYTURL(clipText)) return;
-            if (_thumbnail != null && (YouTubeURL.GetVideoID(clipText) == _thumbnail.VideoURL.VideoID)) return;
+            if (_thumbnail != null && (YouTubeURL.GetVideoID(clipText) == _thumbnail.VideoUrl.VideoID)) return;
             GrabThumbnail(clipText);
         }
         private void Image_DownloadCompleted(object sender, EventArgs e)
         {
-            //SaveImage.IsEnabled = true;            
+            //SaveImage.IsEnabled = true;  
+            _isUpdatingThumbnail = false;
             _thumbnail.GetThumbnailSuccess -= Image_DownloadCompleted;
+            OnPropertyChanged("ThumbnailBitmapImage");
             UpdateStatusBar();
             if (_options.AutoSaveImages)
                 SaveThumbnailImageToFile();
-            OnThumbnailImageCompleted();
+            OnThumbnailImageCompleted(sender, e);
         }
         private void Image_DownloadFailed(object sender, ExceptionEventArgs e)
         {
             //SaveImage.IsEnabled = false;
+            _isUpdatingThumbnail = false;
             _thumbnail.GetThumbailFailure -= Image_DownloadFailed;
-            OnThumbnailImageFailed();
+            OnPropertyChanged("ThumbnailBitmapImage");
+            OnThumbnailImageFailed(sender, e);
         }
         private void Image_DownloadProgress(object sender, DownloadProgressEventArgs e)
         {
-            OnThumbnailImageProgress(e);
+            OnThumbnailImageProgress(sender, e);
         }
 
         void youtubePage_ChanImageDownloaded(object sender, EventArgs e)
@@ -284,42 +371,38 @@ namespace YouTubeThumbnailGrabber.ViewModel
         /// <summary>
         /// Notifies upon succes of thumbnail image download
         /// </summary>
-        public event EventHandler ThumbnailImageDownloadCompleted;
-        private void OnThumbnailImageCompleted()
+        public event EventHandler ThumbnailImageDownloadCompletedRouted;
+        private void OnThumbnailImageCompleted(object sender, EventArgs e)
         {
-            EventHandler thumbnailImageDownloadCompleted = ThumbnailImageDownloadCompleted;
+            EventHandler thumbnailImageDownloadCompleted = ThumbnailImageDownloadCompletedRouted;
             if (thumbnailImageDownloadCompleted != null)
-                ThumbnailImageDownloadCompleted(this, new EventArgs());
+                ThumbnailImageDownloadCompletedRouted(sender, e);
         }
         /// <summary>
         /// Notifies upon failure of thumbnail image download
         /// </summary>
-        public event EventHandler ThumbnailImageDownloadFailed;
-        private void OnThumbnailImageFailed()
+        public event EventHandler<ExceptionEventArgs> ThumbnailImageDownloadFailedRouted;
+        private void OnThumbnailImageFailed(object sender, ExceptionEventArgs e)
         {
-            EventHandler thumbnailImageDownloadFailed = ThumbnailImageDownloadFailed;
+            var thumbnailImageDownloadFailed = ThumbnailImageDownloadFailedRouted;
             if (thumbnailImageDownloadFailed != null)
-                ThumbnailImageDownloadFailed(this, new EventArgs());
+                ThumbnailImageDownloadFailedRouted(sender, e);
         }
         /// <summary>
-        /// Notifies on the progress of thumbnail image downloads
+        /// Notifies on the progress of thumbnail image downloads.
         /// </summary>
-        public event EventHandler<DownloadProgressEventArgs> ThumbnailImageProgress;
-        private void OnThumbnailImageProgress(DownloadProgressEventArgs e)
+        public event EventHandler<DownloadProgressEventArgs> ThumbnailImageProgressRouted;
+        private void OnThumbnailImageProgress(object sender, DownloadProgressEventArgs e)
         {
-            EventHandler<DownloadProgressEventArgs> thumbnailImageProgress = ThumbnailImageProgress;
+            EventHandler<DownloadProgressEventArgs> thumbnailImageProgress = ThumbnailImageProgressRouted;
             if (thumbnailImageProgress != null)
-                ThumbnailImageProgress(this, e);
+                ThumbnailImageProgressRouted(sender, e);
         }
-        /// <summary>
-        /// Notifies upon status bar information changes
-        /// </summary>
-        public event EventHandler StatusBarUpdated;
-        private void OnStatusBarUpdated()
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string propName = null)
         {
-            EventHandler statusBarUpdated = StatusBarUpdated;
-            if (statusBarUpdated != null)
-                StatusBarUpdated(this, new EventArgs());
+            var onPropertyChanged = PropertyChanged;
+            if (onPropertyChanged != null) onPropertyChanged(this, new PropertyChangedEventArgs(propName));
         }
         #endregion
     }

@@ -40,7 +40,6 @@ namespace YouTubeThumbnailGrabber.Model
                 request.UserAgent = _userAgent;
 
             request.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
-
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             {
                 Headers = response.Headers;

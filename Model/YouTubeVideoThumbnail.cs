@@ -12,15 +12,15 @@ namespace YouTubeThumbnailGrabber.Model
         /// <summary>
         /// Instance of a YouTube video URL for this instance of a YouTubeVideoThumbnail
         /// </summary>
-        public YouTubeURL VideoURL { get; private set; }
+        public YouTubeURL VideoUrl { get; private set; }
         /// <summary>
         /// URI for full resolution thumbnail image
         /// </summary>
-        public Uri ImageMaxResURI { get; private set; }
+        public Uri ImageMaxResUri { get; private set; }
         /// <summary>
         /// URI for lower-quality thumbnail image
         /// </summary>
-        public Uri ImageAlternateURI { get; private set; }
+        public Uri ImageAlternateUri { get; private set; }
         private BitmapImage _thumbnailImage;
         /// <summary>
         /// Downloaded thumbnail for this YouTubeURL
@@ -36,7 +36,7 @@ namespace YouTubeThumbnailGrabber.Model
         /// <param name="youtubeuUrl">A validated YouTube URL. (Use YouTubeURL.ValidateYTURL)</param>
         public YouTubeVideoThumbnail(string youtubeuUrl)
         {
-            VideoURL = new YouTubeURL(youtubeuUrl);
+            VideoUrl = new YouTubeURL(youtubeuUrl);
             CreateURLs();
             GetThumbnail();
         }
@@ -45,15 +45,15 @@ namespace YouTubeThumbnailGrabber.Model
         /// </summary>
         private void CreateURLs()
         {
-            ImageMaxResURI = new Uri(String.Format("http://i.ytimg.com/vi/{0:ID}/maxresdefault.jpg", VideoURL), UriKind.Absolute);
-            ImageAlternateURI = new Uri(String.Format("http://i.ytimg.com/vi/{0:ID}/0.jpg", VideoURL), UriKind.Absolute);
+            ImageMaxResUri = new Uri(String.Format("http://i.ytimg.com/vi/{0:ID}/maxresdefault.jpg", VideoUrl), UriKind.Absolute);
+            ImageAlternateUri = new Uri(String.Format("http://i.ytimg.com/vi/{0:ID}/0.jpg", VideoUrl), UriKind.Absolute);
         }
         /// <summary>
         /// Initiates attempts to download the thumbnail image for this VideoURL. If the first attempt fails, a second attempt is made with an alternate URL.
         /// </summary>
         private void GetThumbnail()
         {
-            _thumbnailImage = new BitmapImage(ImageMaxResURI);
+            _thumbnailImage = new BitmapImage(ImageMaxResUri);
             _thumbnailImage.DownloadCompleted += OnThumbnailSuccess;
             _thumbnailImage.DownloadFailed += _thumbnailImage_DownloadFailed;
         }
@@ -64,7 +64,7 @@ namespace YouTubeThumbnailGrabber.Model
         /// <param name="e">Passthrough for the EventArgs from the first attempt.</param>
         void _thumbnailImage_DownloadFailed(object sender, ExceptionEventArgs e)
         {
-            _thumbnailImage = new BitmapImage(ImageAlternateURI);
+            _thumbnailImage = new BitmapImage(ImageAlternateUri);
             _thumbnailImage.DownloadCompleted += OnThumbnailSuccess;
             _thumbnailImage.DownloadFailed += OnThumbnailFailure;
         }

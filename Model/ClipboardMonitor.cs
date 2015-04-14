@@ -9,9 +9,9 @@ namespace YouTubeThumbnailGrabber.Model
 {
     class ClipboardMonitor
     {
-        private Window window;
-        private IntPtr hWndNextViewer;
-        private HwndSource hWndSource;
+        private readonly Window _window;
+        private IntPtr _hWndNextViewer;
+        private HwndSource _hWndSource;
 
         private const int WM_DRAWCLIPBOARD = 0x0308;
         private const int WM_CHANGECBCHAIN = 0x030D;
@@ -23,19 +23,19 @@ namespace YouTubeThumbnailGrabber.Model
         /// <param name="win"></param>
         public ClipboardMonitor(Window win)
         {
-            window = win;
+            _window = win;
         }
         /// <summary>
         /// Starts monitoring the clipboard for changes
         /// </summary>
         public void InitCBViewer()
         {
-            WindowInteropHelper wih = new WindowInteropHelper(window);
+            var wih = new WindowInteropHelper(_window);
             wih.EnsureHandle();
-            hWndSource = HwndSource.FromHwnd(wih.Handle);
+            _hWndSource = HwndSource.FromHwnd(wih.Handle);
 
-            hWndSource.AddHook(this.WndProc);
-            hWndNextViewer = SetClipboardViewer(hWndSource.Handle);
+            _hWndSource.AddHook(this.WndProc);
+            _hWndNextViewer = SetClipboardViewer(_hWndSource.Handle);
             IsMonitoringClipboard = true;
         }
         /// <summary>
@@ -43,10 +43,10 @@ namespace YouTubeThumbnailGrabber.Model
         /// </summary>
         public void CloseCBViewer()
         {
-            ChangeClipboardChain(hWndSource.Handle, hWndNextViewer);
+            ChangeClipboardChain(_hWndSource.Handle, _hWndNextViewer);
 
-            hWndNextViewer = IntPtr.Zero;
-            hWndSource.RemoveHook(this.WndProc);
+            _hWndNextViewer = IntPtr.Zero;
+            _hWndSource.RemoveHook(this.WndProc);
             IsMonitoringClipboard = false;
         }
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -58,13 +58,13 @@ namespace YouTubeThumbnailGrabber.Model
                         OnClipboardTextChanged(Clipboard.GetText());
                     else if (Clipboard.ContainsImage())
                         ClipboardImageToBitmap();
-                    SendMessage(hWndNextViewer, msg, wParam, lParam);
+                    SendMessage(_hWndNextViewer, msg, wParam, lParam);
                     break;
                 case WM_CHANGECBCHAIN:
-                    if (wParam == hWndNextViewer)
-                        hWndNextViewer = lParam;
+                    if (wParam == _hWndNextViewer)
+                        _hWndNextViewer = lParam;
                     else
-                        SendMessage(hWndNextViewer, msg, wParam, lParam);
+                        SendMessage(_hWndNextViewer, msg, wParam, lParam);
                     break;
             }
             return IntPtr.Zero;
