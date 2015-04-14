@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
 using YouTubeThumbnailGrabber.Model;
+using YouTubeThumbnailGrabber.View;
 using DialogBoxResult = System.Windows.Forms.DialogResult;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
@@ -16,16 +18,16 @@ namespace YouTubeThumbnailGrabber.ViewModel
 {
     public class ViewModel
     {
-        private string channelURL;
-        private string configPath;
-        private string SaveImageFilename { get { return System.IO.Path.Combine(options.SaveImagePath, thumbnail.VideoURL.VideoID) + ".jpg"; } }
+        private string _channelUrl;
+        private readonly string _configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xml");
+        private string SaveImageFilename { get { return System.IO.Path.Combine(_options.SaveImagePath, _thumbnail.VideoURL.VideoID) + ".jpg"; } }
 
-        private BitmapImage defaultThumbnail;
-        private ClipboardMonitor clipboardMonitor;
-        private FolderBrowserDialog folderDialog = new FolderBrowserDialog();
-        private Options options;
-        private YouTubeVideoThumbnail thumbnail;
-        private YouTubePage youtubePage;
+        private readonly BitmapImage _defaultThumbnail = new BitmapImage(new Uri(@"\Resources\YouTubeThumbnailUnavailable.jpg", UriKind.Relative));
+        private readonly ClipboardMonitor _clipboardMonitor;
+        private readonly FolderBrowserDialog _folderDialog = new FolderBrowserDialog();
+        private Options _options;
+        private YouTubeVideoThumbnail _thumbnail;
+        private YouTubePage _youtubePage;
 
         /* 
          * These status bar fields will be made into a class.... later.
@@ -37,24 +39,24 @@ namespace YouTubeThumbnailGrabber.ViewModel
 
         public ViewModel(Window mainWindow)
         {
-            clipboardMonitor = new ClipboardMonitor(mainWindow);
-            clipboardMonitor.ClipboardTextChanged += clipboardMonitor_ClipboardTextChanged;
-
-            defaultThumbnail = new BitmapImage(new Uri(@"\Resources\YouTubeThumbnailUnavailable.jpg", UriKind.Relative));
-            configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.xml");
+            _clipboardMonitor = new ClipboardMonitor(mainWindow);
+            _clipboardMonitor.ClipboardTextChanged += clipboardMonitor_ClipboardTextChanged;
+            mainWindow.Closed += mainWindow_Closed;
             ReadSettings();
         }
+
+
         #region private Methods		
         private void ReadSettings()
         {
-            if (File.Exists(configPath))
+            if (File.Exists(_configPath))
             {
-                XmlSerializer xml = new XmlSerializer(typeof(Options));
-                using (Stream input = File.OpenRead(configPath))
+                var xml = new XmlSerializer(typeof(Options));
+                using (Stream input = File.OpenRead(_configPath))
                 {
                     try
                     {
-                        options = (Options)xml.Deserialize(input);
+                        _options = (Options)xml.Deserialize(input);
                     }
                     catch (Exception)
                     {
@@ -65,40 +67,42 @@ namespace YouTubeThumbnailGrabber.ViewModel
             }
             else
                 LoadDefaultSettings();
-            if (options.AutoLoadURLs && !clipboardMonitor.IsMonitoringClipboard)
-                clipboardMonitor.InitCBViewer();
-            else if (clipboardMonitor.IsMonitoringClipboard)
-                clipboardMonitor.CloseCBViewer();
+            if (_options.AutoLoadURLs && !_clipboardMonitor.IsMonitoringClipboard)
+                _clipboardMonitor.InitCBViewer();
+            else if (_clipboardMonitor.IsMonitoringClipboard)
+                _clipboardMonitor.CloseCBViewer();
 
-            folderDialog.Description = "Select a folder to save thumbnail images.";
-            folderDialog.SelectedPath = options.SaveImagePath;
+            _folderDialog.Description = "Select a folder to save thumbnail images.";
+            _folderDialog.SelectedPath = _options.SaveImagePath;
         }
         private void LoadDefaultSettings()
         {
-            options = new Options();
-            options.ImageFileNamingMode = FileNamingMode.VideoID;
-            options.AutoSaveImages = false;
-            options.AutoLoadURLs = false;
-            options.PublishedDateTitle = false;
-            options.VideoViews = false;
-            options.SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            _options = new Options
+            {
+                ImageFileNamingMode = FileNamingMode.VideoID,
+                AutoSaveImages = false,
+                AutoLoadURLs = false,
+                PublishedDateTitle = false,
+                VideoViews = false,
+                SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
         }
         private void UpdateStatusBar()
         {
-            if (youtubePage.ChannelIcon == null)
-                youtubePage.ChanImageDownloaded += youtubePage_ChanImageDownloaded;
+            if (_youtubePage.ChannelIcon == null)
+                _youtubePage.ChanImageDownloaded += youtubePage_ChanImageDownloaded;
             else
-                StsBrChanImage = youtubePage.ChannelIcon;
+                StsBrChanImage = _youtubePage.ChannelIcon;
 
-            StsBrURL = youtubePage.YTURL.ShortYTURL;
-            StringBuilder sb = new StringBuilder(youtubePage.VideoTitle);
-            if (options.PublishedDateTitle)
-                sb.Insert(0, String.Format("[{0:yy.MM.dd}] ", youtubePage.Published));
-            if (options.VideoViews)
-                sb.Append(String.Format(" ({0})", youtubePage.VideoViewCount));
+            StsBrURL = _youtubePage.YTURL.ShortYTURL;
+            StringBuilder sb = new StringBuilder(_youtubePage.VideoTitle);
+            if (_options.PublishedDateTitle)
+                sb.Insert(0, String.Format("[{0:yy.MM.dd}] ", _youtubePage.Published));
+            if (_options.VideoViews)
+                sb.Append(String.Format(" ({0})", _youtubePage.VideoViewCount));
             StsBrTitle = sb.ToString();
-            StsBrChanName = youtubePage.ChannelName;
-            channelURL = youtubePage.ChannelURL.OriginalString;
+            StsBrChanName = _youtubePage.ChannelName;
+            _channelUrl = _youtubePage.ChannelUri.OriginalString;
 
             OnStatusBarUpdated();
         }
@@ -114,17 +118,17 @@ namespace YouTubeThumbnailGrabber.ViewModel
         {
             if (YouTubeURL.ValidateYTURL(url))
             {
-                if (thumbnail != null && (YouTubeURL.GetVideoID(url) == thumbnail.VideoURL.VideoID))
+                if (_thumbnail != null && (YouTubeURL.GetVideoID(url) == _thumbnail.VideoURL.VideoID))
                 {
                     MessageBox.Show("This video's thumbnail is already being displayed.", "Duplicate URL");
                     return false;
                 }
-                thumbnail = new YouTubeVideoThumbnail(url);
-                thumbnail.GetThumbnailSuccess += Image_DownloadCompleted;
-                thumbnail.GetThumbailFailure += Image_DownloadFailed;
-                thumbnail.ThumbnailImage.DownloadProgress += Image_DownloadProgress;
+                _thumbnail = new YouTubeVideoThumbnail(url);
+                _thumbnail.GetThumbnailSuccess += Image_DownloadCompleted;
+                _thumbnail.GetThumbailFailure += Image_DownloadFailed;
+                _thumbnail.ThumbnailImage.DownloadProgress += Image_DownloadProgress;
 
-                youtubePage = new YouTubePage(thumbnail.VideoURL);
+                _youtubePage = new YouTubePage(_thumbnail.VideoURL);
                 return true;
             }
             else
@@ -134,7 +138,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
         /// Saves the currently displayed thumbnail image to a .jpg file
         /// </summary>
         /// <returns>Whether the save operation was successful</returns>
-        public bool SaveThumbnailImageFile()
+        public bool SaveThumbnailImageToFile()
         {
             string fileName = SaveImageFilename;
             if (File.Exists(fileName))
@@ -145,10 +149,10 @@ namespace YouTubeThumbnailGrabber.ViewModel
             }
             else
             {
-                if (!Directory.Exists(options.SaveImagePath))
-                    Directory.CreateDirectory(options.SaveImagePath);
+                if (!Directory.Exists(_options.SaveImagePath))
+                    Directory.CreateDirectory(_options.SaveImagePath);
                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(thumbnail.ThumbnailImage as BitmapImage));
+                encoder.Frames.Add(BitmapFrame.Create(_thumbnail.ThumbnailImage as BitmapImage));
                 try
                 {
                     using (Stream output = File.Create(fileName))
@@ -168,7 +172,66 @@ namespace YouTubeThumbnailGrabber.ViewModel
                 }
                 return true;
             }
-        } 
+        }
+
+        public void OpenImageInViewer() {
+            string tempDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Temp\" + thumbnail.VideoURL.VideoID + ".jpg";
+            string[] checkLocations = { SaveImageFilename, tempDirectory };
+            bool fileExists = false;
+            string existingFile = String.Empty;
+            foreach (var check in checkLocations)
+                if (File.Exists(check)) {
+                    fileExists = true;
+                    existingFile = check;
+                    break;
+                }
+            if (fileExists)
+                System.Diagnostics.Process.Start(existingFile);
+            else {
+                JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(thumbnail.ThumbnailImage as BitmapImage));
+                try {
+                    using (Stream output = File.Create(tempDirectory))
+                        encoder.Save(output);
+                }
+                catch (Exception) {
+                    MessageBox.Show("The image could not be saved.",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                System.Diagnostics.Process.Start(tempDirectory);
+            }
+        }
+        public void OpenVideoInBrowser() {
+            if (_thumbnail == null) return;
+            System.Diagnostics.Process.Start(_thumbnail.VideoURL.LongYTURL);
+        }
+
+        public void SetImageToClipboard()
+        {
+            Clipboard.SetImage(_thumbnail.ThumbnailImage);
+        }
+        public void SetVideoUrlToClipboard()
+        {
+            if (_thumbnail == null) return; 
+            Clipboard.SetText(_thumbnail.VideoURL.ShortYTURL);
+        }
+        public void SetChannelUrlToClipboard()
+        {
+            if (_thumbnail == null) return;
+            Clipboard.SetText(_channelUrl);
+        }
+        public void OpenChannelInBrowser()
+        {
+            if (_thumbnail == null) return;
+            System.Diagnostics.Process.Start(_channelUrl);
+        }
+
+        public void OpenOptionsMenu()
+        {
+            var opMenu = new OptionsMenu();
+            opMenu.Closed += opMenu_Closed;
+        }
         #endregion
 
 
@@ -176,25 +239,23 @@ namespace YouTubeThumbnailGrabber.ViewModel
         private void clipboardMonitor_ClipboardTextChanged(object sender, ClipboardEventArgs e)
         {
             string clipText = e.ClipboardText;
-            if (YouTubeURL.ValidateYTURL(clipText))
-            {
-                if (thumbnail != null && (YouTubeURL.GetVideoID(clipText) == thumbnail.VideoURL.VideoID)) return;
-                GrabThumbnail(clipText);
-            }
+            if (!YouTubeURL.ValidateYTURL(clipText)) return;
+            if (_thumbnail != null && (YouTubeURL.GetVideoID(clipText) == _thumbnail.VideoURL.VideoID)) return;
+            GrabThumbnail(clipText);
         }
         private void Image_DownloadCompleted(object sender, EventArgs e)
         {
             //SaveImage.IsEnabled = true;            
-            thumbnail.GetThumbnailSuccess -= Image_DownloadCompleted;
+            _thumbnail.GetThumbnailSuccess -= Image_DownloadCompleted;
             UpdateStatusBar();
-            if (options.AutoSaveImages)
-                SaveThumbnailImageFile();
+            if (_options.AutoSaveImages)
+                SaveThumbnailImageToFile();
             OnThumbnailImageCompleted();
         }
         private void Image_DownloadFailed(object sender, ExceptionEventArgs e)
         {
             //SaveImage.IsEnabled = false;
-            thumbnail.GetThumbailFailure -= Image_DownloadFailed;
+            _thumbnail.GetThumbailFailure -= Image_DownloadFailed;
             OnThumbnailImageFailed();
         }
         private void Image_DownloadProgress(object sender, DownloadProgressEventArgs e)
@@ -204,9 +265,18 @@ namespace YouTubeThumbnailGrabber.ViewModel
 
         void youtubePage_ChanImageDownloaded(object sender, EventArgs e)
         {
-            YouTubePage youtubePage = sender as YouTubePage;
+            var youtubePage = sender as YouTubePage;
+            if (youtubePage == null) return;
             StsBrChanImage = youtubePage.ChannelIcon;
             youtubePage.ChanImageDownloaded -= youtubePage_ChanImageDownloaded;
+        }
+        void mainWindow_Closed(object sender, EventArgs e) {
+            _clipboardMonitor.CloseCBViewer();
+        }
+        void opMenu_Closed(object sender, EventArgs e) {
+            ((OptionsMenu)sender).Closed -= opMenu_Closed;
+            ReadSettings();
+            UpdateStatusBar();
         }
         #endregion
 

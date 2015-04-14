@@ -192,25 +192,6 @@ namespace YouTubeThumbnailGrabber.View
                     MessageBoxButton.OK, MessageBoxImage.Asterisk);
             }
         }
-        private void SaveOptions()
-        {
-            try
-            {
-                XmlSerializer xml = new XmlSerializer(typeof(Options));
-                using (Stream output = File.Create(configPath))
-                    xml.Serialize(output, options);
-            }
-            catch (System.UnauthorizedAccessException)
-            {
-                MessageBox.Show("Configuration settings not saved. Please run this application as an Administrator.",
-                    "Configuration Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("Your configuration could not be saved.",
-                    "Configuration Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
 
         private void OpenVideo_Click(object sender, RoutedEventArgs e)
         {
@@ -277,11 +258,9 @@ namespace YouTubeThumbnailGrabber.View
         }
         private void StatusBarURL_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (thumbnail != null)
-            {
-                Clipboard.SetText(thumbnail.VideoURL.ShortYTURL);
-                MessageBox.Show("URL copied to clipboard", "URL Copied", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            if (thumbnail == null) return;
+            Clipboard.SetText(thumbnail.VideoURL.ShortYTURL);
+            MessageBox.Show("URL copied to clipboard", "URL Copied", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         private void SBChannel_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -304,7 +283,7 @@ namespace YouTubeThumbnailGrabber.View
                 sb.Append(String.Format( " ({0})", youtubePage.VideoViewCount));
             SBTitle.Text = sb.ToString();
             SBChannel.Text = youtubePage.ChannelName;           
-            channelURL = youtubePage.ChannelURL.OriginalString;            
+            channelURL = youtubePage.ChannelUri.OriginalString;            
         }
         void ytp_ChanImageDownloaded(object sender, EventArgs e)
         {

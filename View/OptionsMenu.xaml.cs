@@ -72,13 +72,15 @@ namespace YouTubeThumbnailGrabber.View
         }
         private void LoadDefaultSettings()
         {
-            options = new Options();
-            options.ImageFileNamingMode = FileNamingMode.VideoID;
-            options.AutoSaveImages = false;
-            options.AutoLoadURLs = false;
-            options.PublishedDateTitle = false;
-            options.VideoViews = false;
-            options.SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            options = new Options
+            {
+                ImageFileNamingMode = FileNamingMode.VideoID,
+                AutoSaveImages = false,
+                AutoLoadURLs = false,
+                PublishedDateTitle = false,
+                VideoViews = false,
+                SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
         }
         private void SaveOptions()
         {

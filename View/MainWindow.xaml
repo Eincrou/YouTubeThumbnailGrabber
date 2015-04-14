@@ -58,9 +58,10 @@
                     <Image.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Copy Image to Clipboard" Click="ImageToClipboardHandler"/>
-                            <MenuItem Header="Copy Video Link Address" Click="MenuCopyAddress_Click" />
-                            <Separator/>
                             <MenuItem Header="Open Image in Default Viewer" Click="OpenImageInViewerCtxtMen"/>
+                            <Separator/>
+                            <MenuItem Header="Copy Video Link Address" Click="MenuCopyAddress_Click" />
+                            <MenuItem Header="Open Video Link in Browser" Click="OpenVideo_Click" />
                         </ContextMenu>
                     </Image.ContextMenu>
                 </Image>
