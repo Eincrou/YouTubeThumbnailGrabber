@@ -10,7 +10,7 @@ namespace YouTubeThumbnailGrabber.Model
     {
         private static readonly string[] _idPatterns =
             { 
-                @"youtube.com/watch\?([^/]+\&)?(v|src_vid)=(?<v>[^\&\?\/]{11})", 
+                @"youtube.com/watch\?([^/]+\&)?(v|src_vid|%3D)=(?<v>[^\&\?\/]{11})", 
                 @"youtube.com/\w*/(?<v>[^\&\?\/]{11})",
                 @"youtu.be/(?<v>[^\&\?\/]{11})",
                 @"youtube.com/verify_age\?next_url=watch%3Fv%3D(?<v>[^\&\?\/]{11})",

@@ -312,6 +312,8 @@ namespace YouTubeThumbnailGrabber.ViewModel
         public void OpenOptionsMenu()
         {
             var opMenu = new OptionsMenu(_options);
+            opMenu.Owner = Application.Current.MainWindow;
+            opMenu.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             opMenu.Closed += opMenu_Closed;
             opMenu.ShowDialog();
         }
