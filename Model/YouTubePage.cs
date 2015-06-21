@@ -168,7 +168,7 @@ namespace YouTubeThumbnailGrabber.Model
 
         private void GetPublished()
         {
-            var pubMatch = Regex.Match(_page, @"(?:Published|Uploaded|Started)\son\s(?<date>[^<]*)");
+            var pubMatch = Regex.Match(_page, @"(?:Published|Uploaded|Started|Streamed live)\son\s(?<date>[^<]*)");
             _published = pubMatch.Groups["date"].Success ? DateTime.Parse(pubMatch.Groups["date"].Value) : new DateTime();
         }
 

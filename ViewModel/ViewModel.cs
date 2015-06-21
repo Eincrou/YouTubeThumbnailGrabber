@@ -110,11 +110,6 @@ namespace YouTubeThumbnailGrabber.ViewModel
         }
         private string _stsBrChanName;
 
-        public ViewModel()
-        {
-            
-        }
-
         public void InitializeViewModel(Window mainWindow)
         {
             _clipboardMonitor = new ClipboardMonitor(mainWindow);
@@ -184,6 +179,19 @@ namespace YouTubeThumbnailGrabber.ViewModel
             StsBrChanName = _youtubePage.ChannelName;
             _channelUrl = _youtubePage.ChannelUri.OriginalString;
         }
+
+        private void DownloadThumbnail(string url)
+        {
+
+            _isUpdatingThumbnail = true;
+            OnPropertyChanged("ThumbnailBitmapImage");
+            _thumbnail = new YouTubeVideoThumbnail(url);
+            _thumbnail.GetThumbnailSuccess += Image_DownloadCompleted;
+            _thumbnail.GetThumbailFailure += Image_DownloadFailed;
+            _thumbnail.ThumbnailImage.DownloadProgress += Image_DownloadProgress;
+
+            _youtubePage = new YouTubePage(_thumbnail.VideoUrl);
+        }
         #endregion
 
         #region Public Methods
@@ -194,25 +202,31 @@ namespace YouTubeThumbnailGrabber.ViewModel
         /// <returns>Whether the URL could be successfully parsed and is a new URL</returns>
         public bool GrabThumbnail(string url)
         {
-            if (YouTubeURL.ValidateYTURL(url))
+            if (YouTubePlaylist.ValidatePlaylist(url))
+            {
+                if (
+                    MessageBox.Show("Download thumbnails for all videos in this playlist?", "YouTube Playlist Detected",
+                        MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    YouTubePlaylist pl = new YouTubePlaylist(url);
+                    foreach (var video in pl.VideoUrlsList)
+                    {
+                        DownloadThumbnail(video.LongYTURL);
+                    }
+                    return true;
+                }
+            }
+            if (YouTubeURL.ValidateUrl(url))
             {
                 if (_thumbnail != null && (YouTubeURL.GetVideoID(url) == _thumbnail.VideoUrl.VideoID))
                 {
                     return false;
                     //    MessageBox.Show("This video's thumbnail is already being displayed.", "Duplicate URL");
                 }
-                _isUpdatingThumbnail = true;
-                OnPropertyChanged("ThumbnailBitmapImage");
-                _thumbnail = new YouTubeVideoThumbnail(url);
-                _thumbnail.GetThumbnailSuccess += Image_DownloadCompleted;
-                _thumbnail.GetThumbailFailure += Image_DownloadFailed;
-                _thumbnail.ThumbnailImage.DownloadProgress += Image_DownloadProgress;
-
-                _youtubePage = new YouTubePage(_thumbnail.VideoUrl);
+                DownloadThumbnail(url);
                 return true;
             }
-            else
-                return false;
+            return false;
         }
         /// <summary>
         /// Saves the currently displayed thumbnail image to a .jpg file
@@ -268,7 +282,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
                     break;
                 }
             if (fileExists)
-                System.Diagnostics.Process.Start(existingFile);
+                Process.Start(existingFile);
             else {
                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(_thumbnail.ThumbnailImage as BitmapImage));
@@ -281,12 +295,12 @@ namespace YouTubeThumbnailGrabber.ViewModel
                         "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                System.Diagnostics.Process.Start(tempDirectory);
+                Process.Start(tempDirectory);
             }
         }
         public void OpenVideoInBrowser() {
             if (_thumbnail == null) return;
-            System.Diagnostics.Process.Start(_thumbnail.VideoUrl.LongYTURL);
+            Process.Start(_thumbnail.VideoUrl.LongYTURL);
         }
 
         public void SetImageToClipboard()
@@ -306,7 +320,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
         public void OpenChannelInBrowser()
         {
             if (_thumbnail == null) return;
-            System.Diagnostics.Process.Start(_channelUrl);
+            Process.Start(_channelUrl);
         }
 
         public void OpenOptionsMenu()
@@ -324,7 +338,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
         private void clipboardMonitor_ClipboardTextChanged(object sender, ClipboardEventArgs e)
         {
             string clipText = e.ClipboardText;
-            if (!YouTubeURL.ValidateYTURL(clipText)) return;
+            if (!YouTubeURL.ValidateUrl(clipText)) return;
             if (_thumbnail != null && (YouTubeURL.GetVideoID(clipText) == _thumbnail.VideoUrl.VideoID)) return;
             GrabThumbnail(clipText);
         }

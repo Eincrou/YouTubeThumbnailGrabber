@@ -63,7 +63,7 @@ namespace YouTubeThumbnailGrabber.Model
         /// </summary>
         /// <param name="urlToCheck">A URL to check.</param>
         /// <returns>Whether the URL matches a supported YouTube URL pattern.</returns>
-        public static bool ValidateYTURL(string urlToCheck)
+        public static bool ValidateUrl(string urlToCheck)
         {
             try
             {
@@ -76,6 +76,7 @@ namespace YouTubeThumbnailGrabber.Model
             return true;
         }
 
+        #region Interface/Override
         public bool Equals(YouTubeURL other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -114,5 +115,9 @@ namespace YouTubeThumbnailGrabber.Model
                           "Format {0} is not supported", format));
             }
         }
+        #endregion
+
     }
 }
+
+
