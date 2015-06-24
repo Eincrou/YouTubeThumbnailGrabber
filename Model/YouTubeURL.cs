@@ -119,5 +119,3 @@ namespace YouTubeThumbnailGrabber.Model
 
     }
 }
-
-

@@ -14,18 +14,41 @@ namespace YouTubeThumbnailGrabber.Model
         private readonly string _playlistId;
         private readonly string _playlistPage;
         private readonly List<YouTubeURL> _pageUrls = new List<YouTubeURL>();
-
+        /// <summary>
+        /// URL to this playlist's main page
+        /// </summary>
         public string PlaylistUrl
         {
             get { return @"https://www.youtube.com/playlist?list=" + _playlistId; } 
         }
+        /// <summary>
+        /// Title of this playlist
+        /// </summary>
         public string Title { get; private set; }
+        /// <summary>
+        /// Name of the channel that created and owns this playlist
+        /// </summary>
         public string Owner { get; private set; }
+        /// <summary>
+        /// Number of videos in this playlist
+        /// </summary>
         public string NumVideos { get; private set; }
+        /// <summary>
+        /// Number of page views for this playlist
+        /// </summary>
         public string Views { get; private set; }
+        /// <summary>
+        /// Date of the last time the playlist owner changed this playlist
+        /// </summary>
         public DateTime LastUpdated { get; private set; }
+        /// <summary>
+        /// All of the videos in this playlist
+        /// </summary>
         public List<YouTubeURL> VideoUrlsList { get { return _pageUrls; } }
-
+        /// <summary>
+        /// Instantiates a new YouTubePlaylist object, containing information about a playlist on YouTube.
+        /// </summary>
+        /// <param name="playlistUrl">String representing a valid YouTube playlist URL</param>
         public YouTubePlaylist(string playlistUrl)
         {
             if (!ValidatePlaylist(playlistUrl))
@@ -37,10 +60,20 @@ namespace YouTubeThumbnailGrabber.Model
             GetPlaylistInformation();
             GetAllYouTubeUrls();
         }
-
+        /// <summary>
+        /// Checks if a string has YouTube playlist information
+        /// </summary>
+        /// <param name="url">String to validate as continaing a YouTube playlist</param>
+        /// <returns>Whether the input string is a URL with a valid YouTube playlist</returns>
+        public static bool ValidatePlaylist(string url)
+        {
+            if ((url.Contains("youtube.com") || url.Contains("youtu.be")) && url.Contains("list="))
+                return true;
+            return false;
+        }
         private string GetPlaylistId(string playlistUrl)
         {
-            var plIdMatch = Regex.Match(playlistUrl, @"list=(?<list>.{34})");
+            var plIdMatch = Regex.Match(playlistUrl, @"list=(?<list>[^&]*)");
             return plIdMatch.Groups["list"].Value;
         } 
         private void GetPlaylistInformation()
@@ -64,7 +97,7 @@ namespace YouTubeThumbnailGrabber.Model
         {
             var urlMatches = Regex.Matches(_playlistPage,
                 @"<td\sclass=""pl-video-title"">\s*<a\s([\w-]*=""[^""]*""\s?)*");
-            foreach (Match match in urlMatches)
+            foreach (Match match in urlMatches) // This hardcoding should be improved.
             {
                 string href = match.Groups[1].Captures[2].Value;
                 string vidId = href.Substring(15, 11);
@@ -72,11 +105,5 @@ namespace YouTubeThumbnailGrabber.Model
             }
         }
 
-        public static bool ValidatePlaylist(string url)
-        {
-            if ((url.Contains("youtube.com") || url.Contains("youtu.be")) && url.Contains("list="))
-                return true;
-            return false;
-        }
     }
 }

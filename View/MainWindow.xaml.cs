@@ -34,7 +34,9 @@
 
         private void GetImage_Click(object sender, RoutedEventArgs e)
         {
-            viewModel.GrabThumbnail(InputVideoURL.Text);
+            if (!viewModel.GrabThumbnail(InputVideoURL.Text))
+                MessageBox.Show("The URL could not be parsed into a valid YouTube URL.", "Invalid YouTube URL",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         void Image_DownloadCompleted(object sender, EventArgs e)

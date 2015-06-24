@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -174,13 +175,13 @@ namespace YouTubeThumbnailGrabber.ViewModel
             if (_options.PublishedDateTitle)
                 sb.Insert(0, String.Format("[{0:yy.MM.dd}] ", _youtubePage.Published));
             if (_options.VideoViews)
-                sb.Append(String.Format(" ({0})", _youtubePage.VideoViewCount));
+                sb.Append(String.Format(" ({0})", _youtubePage.ViewCount));
             StsBrTitle = sb.ToString();
             StsBrChanName = _youtubePage.ChannelName;
             _channelUrl = _youtubePage.ChannelUri.OriginalString;
         }
 
-        private void DownloadThumbnail(string url)
+        private void DownloadThumbnailImage(string url)
         {
 
             _isUpdatingThumbnail = true;
@@ -202,6 +203,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
         /// <returns>Whether the URL could be successfully parsed and is a new URL</returns>
         public bool GrabThumbnail(string url)
         {
+            url = WebUtility.HtmlDecode(url);
             if (YouTubePlaylist.ValidatePlaylist(url))
             {
                 if (
@@ -211,7 +213,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
                     YouTubePlaylist pl = new YouTubePlaylist(url);
                     foreach (var video in pl.VideoUrlsList)
                     {
-                        DownloadThumbnail(video.LongYTURL);
+                        DownloadThumbnailImage(video.LongYTURL);
                     }
                     return true;
                 }
@@ -223,7 +225,7 @@ namespace YouTubeThumbnailGrabber.ViewModel
                     return false;
                     //    MessageBox.Show("This video's thumbnail is already being displayed.", "Duplicate URL");
                 }
-                DownloadThumbnail(url);
+                DownloadThumbnailImage(url);
                 return true;
             }
             return false;
@@ -338,9 +340,11 @@ namespace YouTubeThumbnailGrabber.ViewModel
         private void clipboardMonitor_ClipboardTextChanged(object sender, ClipboardEventArgs e)
         {
             string clipText = e.ClipboardText;
-            if (!YouTubeURL.ValidateUrl(clipText)) return;
-            if (_thumbnail != null && (YouTubeURL.GetVideoID(clipText) == _thumbnail.VideoUrl.VideoID)) return;
-            GrabThumbnail(clipText);
+            if (YouTubeURL.ValidateUrl(clipText) || YouTubePlaylist.ValidatePlaylist(clipText))
+            {
+                if (_thumbnail != null && (YouTubeURL.GetVideoID(clipText) == _thumbnail.VideoUrl.VideoID)) return;
+                GrabThumbnail(clipText);
+            }
         }
         private void Image_DownloadCompleted(object sender, EventArgs e)
         {

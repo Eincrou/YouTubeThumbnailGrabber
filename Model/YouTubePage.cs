@@ -7,13 +7,19 @@ using System.Windows.Media.Imaging;
 
 namespace YouTubeThumbnailGrabber.Model
 {
+    public enum YouTubeVideoPrivacy
+    {
+        Public, Unlisted, Private
+    }
     public class YouTubePage
     {
         private string _page;
+
+        #region Public Properties
         /// <summary>
-        /// Contains numerous fields with various YouTube URLs
+        /// Contains fields with various YouTube URLs
         /// </summary>
-        public YouTubeURL VideoUrl {get; private set;}
+        public YouTubeURL VideoUrl { get; private set; }
         /// <summary>
         /// The title of this YouTube video
         /// </summary>
@@ -28,18 +34,31 @@ namespace YouTubeThumbnailGrabber.Model
         }
         private string _videoTitle;
         /// <summary>
-        /// Gets the number of views for this video page
+        /// The uploader's description of this video
         /// </summary>
-        public string VideoViewCount
+        public string VideoDescription
         {
             get
             {
-                if (_videoViewCount == null)
-                    GetVideoViewCount();
-                return _videoViewCount;
+                if (_videoDescription == null)
+                    GetDescription();
+                return _videoDescription;
             }
         }
-        private string _videoViewCount;
+        private string _videoDescription;
+        /// <summary>
+        /// Whether the video is premium content
+        /// </summary>
+        public bool Paid
+        {
+            get
+            {
+                if (!_paid.HasValue)
+                    GetPaid();
+                return _paid.Value;
+            }
+        }
+        private bool? _paid;
         /// <summary>
         /// Gets the name of the video uploader's channel
         /// </summary>
@@ -81,7 +100,73 @@ namespace YouTubeThumbnailGrabber.Model
                 return _channelIcon;
             }
         }
-        private BitmapImage _channelIcon;        
+        private BitmapImage _channelIcon;
+        /// <summary>
+        /// The length of the video.
+        /// </summary>
+        public TimeSpan Duration
+        {
+            get
+            {
+                if (!_duration.HasValue)
+                    GetDuration();
+                return _duration.Value;
+            }
+        }
+        private TimeSpan? _duration;
+
+        /// <summary>
+        /// Gets the video's visibility (Public, Unlisted or Private)
+        /// </summary>
+        public YouTubeVideoPrivacy VideoPrivacy
+        {
+            get
+            {
+                if (!_videoPrivacy.HasValue)
+                    GetVideoPrivacy();
+                return _videoPrivacy.Value;
+            }
+        }
+        private YouTubeVideoPrivacy? _videoPrivacy;
+        /// <summary>
+        /// Whether the video has an age-restricted content warning
+        /// </summary>
+        private bool IsFamilyFriendly
+        {
+            get
+            {
+                if (!_isFamilyFriendly.HasValue)
+                    GetIsFamilyFriendly();
+                return _isFamilyFriendly.Value;
+            }
+        }
+        private bool? _isFamilyFriendly;
+        /// <summary>
+        /// Two-character country codes for the countries in which the video is viewable
+        /// </summary>
+        public string[] RegionsAllowed
+        {
+            get
+            {
+                if(_regionsAllowed == null)
+                    GetRegionsAllowed();
+                return _regionsAllowed;
+            }
+        }
+        private string[] _regionsAllowed;
+        /// <summary>
+        /// Gets the number of views for this video page
+        /// </summary>
+        public int ViewCount
+        {
+            get
+            {
+                if (!_viewCount.HasValue)
+                    GetViewCount();
+                return _viewCount.Value;
+            }
+        }
+        private int? _viewCount;
         /// <summary>
         /// Gets the date the video was uploaded or published
         /// </summary>
@@ -95,21 +180,24 @@ namespace YouTubeThumbnailGrabber.Model
             }
         }
         private DateTime? _published;
-        private string _videoDescription;
         /// <summary>
-        /// The uploader's description of this video
+        /// The video's genre
         /// </summary>
-        public string VideoDescription
+        public string Genre
         {
             get
             {
-                if (_videoDescription == null)
-                    GetVideoDescription();
-                return _videoDescription;
+                if (_genre == null)
+                    GetGenre();
+                return _genre;
             }
         }
+        private string _genre;
+        #endregion
+
+
         /// <summary>
-        /// Instantiates a new object YouTubePage class that can parse information about YouTube videos from their HTML pages
+        /// Instantiates a new YouTubePage instance that can parse information about YouTube videos from their HTML pages
         /// </summary>
         /// <param name="yturl"></param>
         public YouTubePage(YouTubeURL yturl)
@@ -121,24 +209,11 @@ namespace YouTubeThumbnailGrabber.Model
 
         private void GetVideoTitle()
         {
-            var titleMatch = Regex.Match(_page, @"<h1\sclass=""yt\swatch-title-container""\s>[^<]*<.*title=\""(?<title>.*)\"">");
-            string title = titleMatch.Groups["title"].Value;
+            var titleMatch = Regex.Match(_page, @"<meta\sitemprop=""name""\scontent=""(?<name>[^""]*)"">");
+            string title = titleMatch.Groups["name"].Value;
             _videoTitle = WebUtility.HtmlDecode(title);
         }
-        private void GetVideoViewCount()
-        {
-            var viewCountMatch = Regex.Match(_page, @"watch-view-count[^>]+>(?<views>[^<]*)", RegexOptions.IgnoreCase);
-            string views;
-            if (viewCountMatch.Groups["views"].Value != String.Empty)
-            {
-                views = viewCountMatch.Groups["views"].Value;
-                if (!views.Contains(" views"))
-                    views += " views";
-            }
-            else
-                views = "LIVE NOW";
-            _videoViewCount = views;
-        }
+
         private void GetChannelInfo()
         {
             var channelMatch = Regex.Match(_page, @"<div\sclass=""yt-user-info"">[^<]*<.*href=""(?<chanUrl>[^""]*)"".*>(?<chanName>.*)</a>");
@@ -148,8 +223,12 @@ namespace YouTubeThumbnailGrabber.Model
         private void GetChannelIcon()
         {
             var chanImageMatch = Regex.Match(_page, @"(?im)^\s+<img.*data-thumb=""(?<imageUrl>[^""]*)""");
+            var iconUrl = chanImageMatch.Groups["imageUrl"].Value.StartsWith(@"//")
+                ? "http:" + chanImageMatch.Groups["imageUrl"].Value
+                : chanImageMatch.Groups["imageUrl"].Value;
+            
             var chanImageIcon = new BitmapImage(
-                new Uri(chanImageMatch.Groups["imageUrl"].Value, UriKind.Absolute));
+                new Uri(iconUrl, UriKind.Absolute));
             chanImageIcon.DownloadCompleted += chanImageIcon_DownloadCompleted;
             chanImageIcon.DownloadFailed += chanImageIcon_DownloadFailed;
 
@@ -165,19 +244,75 @@ namespace YouTubeThumbnailGrabber.Model
             ((BitmapImage) sender).DownloadFailed -= chanImageIcon_DownloadFailed;
             MessageBox.Show("The channel image icon has failed to download.");
         }
-
-        private void GetPublished()
+        private void GetPaid()
         {
-            var pubMatch = Regex.Match(_page, @"(?:Published|Uploaded|Started|Streamed live)\son\s(?<date>[^<]*)");
-            _published = pubMatch.Groups["date"].Success ? DateTime.Parse(pubMatch.Groups["date"].Value) : new DateTime();
+            var paidMatch = Regex.Match(_page, @"<meta\sitemprop=""paid""\scontent=""(?<paid>\w*)"">");
+            _paid = bool.Parse(paidMatch.Groups["paid"].Value);
         }
-
-        private void GetVideoDescription()
+        private void GetDescription()
         {
-            var vidDescMatch = Regex.Match(_page, @"(?i)eow-description""\s>(?<desc>[^<]*)");
-            string description = vidDescMatch.Groups["desc"].Value;
+            var descMatch = Regex.Match(_page, @"<meta\sitemprop=""description""\scontent=""(?<desc>[^""]*)"">");
+            string description = descMatch.Groups["desc"].Value;
             _videoDescription = WebUtility.HtmlDecode(description);
         }
+        private void GetDuration()
+        {
+            var durationMatch = Regex.Match(_page, @"<meta\sitemprop=""duration""\scontent=""(?<duration>\w*)"">");
+            var minutesSecondsMatch = Regex.Match(durationMatch.Groups["duration"].Value, @"PT(?<M>\d*)M(?<S>\d*)S");
+            int totalMinutes = int.Parse(minutesSecondsMatch.Groups["M"].Value);
+            int totalSeconds = int.Parse(minutesSecondsMatch.Groups["S"].Value);
+            _duration = new TimeSpan(0, 0, totalMinutes, totalSeconds);
+        }
+        private void GetVideoPrivacy()
+        {
+            var privacyMatch = Regex.Match(_page, @"<meta\sitemprop=""unlisted""\scontent=""(?<unlisted>\w*)"">");
+            if (privacyMatch.Groups["unlisted"].Success)
+            {
+                _videoPrivacy =
+                    (YouTubeVideoPrivacy)
+                        Enum.Parse(typeof (YouTubeVideoPrivacy), privacyMatch.Groups["unlisted"].Value);
+            }
+            else
+                _videoPrivacy = YouTubeVideoPrivacy.Private;
+        }
+        private void GetIsFamilyFriendly()
+        {
+            var famFriendMatch = Regex.Match(_page, @"<meta\sitemprop=""isFamilyFriendly""\scontent=""(?<famFriend>\w*)"">");
+            _isFamilyFriendly = bool.Parse(famFriendMatch.Groups["famFriend"].Value);
+        }
+        private void GetRegionsAllowed()
+        {
+            var regionsMatch = Regex.Match(_page, @"<meta\sitemprop=""regionsAllowed""\scontent=""(?<regions>[^""]*)"">");
+            _regionsAllowed = regionsMatch.Groups["regions"].Value.Split(',');
+        }
+        private void GetViewCount()
+        {
+            var viewCountMatch = Regex.Match(_page, @"<meta\sitemprop=""interactionCount""\scontent=""(?<views>\d*)"">");
+            //string views;
+            //if (viewCountMatch.Groups["views"].Value != String.Empty)
+            //{
+            //    views = viewCountMatch.Groups["views"].Value;
+            //    if (!views.Contains(" views"))
+            //        views += " views";
+            //}
+            //else
+            //    views = "LIVE NOW";
+            //_viewCount = views;
+            _viewCount = int.Parse(viewCountMatch.Groups["views"].Value);
+        }
+        private void GetPublished()
+        {
+            //var pubMatch = Regex.Match(_page, @"(?:Published|Uploaded|Started|Streamed live)\son\s(?<date>[^<]*)");
+            //_published = pubMatch.Groups["date"].Success ? DateTime.Parse(pubMatch.Groups["date"].Value) : new DateTime();
+            var publishMatch = Regex.Match(_page, @"<meta\sitemprop=""datePublished""\scontent=""(?<published>[^""]*)"">");
+            _published = DateTime.Parse(publishMatch.Groups["published"].Value);
+        }
+        private void GetGenre()
+        {
+            var genreMatch = Regex.Match(_page, @"<meta\sitemprop=""genre""\scontent=""(?<genre>[^""]*)"">");
+            _genre = WebUtility.HtmlDecode(genreMatch.Groups["genre"].Value);
+        }
+
         /// <summary>
         /// Notifies when the channel icon image has completed downloading.
         /// </summary>
