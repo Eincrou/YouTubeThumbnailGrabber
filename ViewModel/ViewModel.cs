@@ -15,6 +15,7 @@ using YouTubeThumbnailGrabber.Model;
 using YouTubeThumbnailGrabber.View;
 using DialogBoxResult = System.Windows.Forms.DialogResult;
 using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
+using YouTubeParse;
 
 namespace YouTubeThumbnailGrabber.ViewModel
 {
@@ -160,18 +161,21 @@ namespace YouTubeThumbnailGrabber.ViewModel
                 SaveImagePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
             };
         }
-        private void UpdateStatusBar()
+        private async void UpdateStatusBar()
         {
             // Where to instantiate new object so it doesn't block?
             if (_youtubePage == null || !(_youtubePage.VideoUrl).Equals(_thumbnail.VideoUrl))
+            {
                 _youtubePage = new YouTubePage(_thumbnail.VideoUrl);
+                await Task.Run(() =>  _youtubePage.DownloadYouTubePage());
+            }
             if (_youtubePage.ChannelIcon == null)
                 _youtubePage.ChanImageDownloaded += youtubePage_ChanImageDownloaded;
             else
                 StsBrChanImage = _youtubePage.ChannelIcon;
 
             StsBrUrl = _youtubePage.VideoUrl.ShortYTURL;
-            StringBuilder sb = new StringBuilder(_youtubePage.VideoTitle);
+            var sb = new StringBuilder(_youtubePage.VideoTitle);
             if (_options.PublishedDateTitle)
                 sb.Insert(0, String.Format("[{0:yy.MM.dd}] ", _youtubePage.Published));
             if (_options.VideoViews)
@@ -191,7 +195,8 @@ namespace YouTubeThumbnailGrabber.ViewModel
             _thumbnail.GetThumbailFailure += Image_DownloadFailed;
             _thumbnail.ThumbnailImage.DownloadProgress += Image_DownloadProgress;
 
-            _youtubePage = new YouTubePage(_thumbnail.VideoUrl);
+            //_youtubePage = new YouTubePage(_thumbnail.VideoUrl);
+            //Task.Run(() => _youtubePage.DownloadYouTubePage());
         }
         #endregion
 
